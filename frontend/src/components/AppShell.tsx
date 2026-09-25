@@ -61,7 +61,7 @@ export default function AppShell() {
         <aside className="sidebar" aria-label="Main">
           <Link to="/" className="brand">
             <img src="/favicon.svg" alt="" width={24} height={24} />
-            Family Tree
+            TheFamilyVine
           </Link>
           <TreeSwitcher current={tree} />
           {nav ? (
@@ -98,7 +98,7 @@ export default function AppShell() {
           <header className="topbar">
             <Link to={treeId ? `/trees/${treeId}` : '/'} className="topbar-title">
               <img src="/favicon.svg" alt="" width={22} height={22} />
-              <span>{tree?.name ?? 'Family Tree'}</span>
+              <span>{tree?.name ?? 'TheFamilyVine'}</span>
             </Link>
             {treeId && (
               <Link to="/" className="btn btn-ghost btn-sm">
