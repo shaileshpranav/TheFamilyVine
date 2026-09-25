@@ -91,3 +91,21 @@ git push origin production
 ```
 
 Coolify redeploys `production` automatically.
+
+## How the stack starts
+
+On every deploy, `db` starts first. Then `db-init` creates SuperTokens' `supertokens`
+database if it doesn't exist yet, and exits. SuperTokens waits for `db-init` to
+finish, and the backend applies database migrations before it starts serving.
+Coolify doesn't count `db-init` towards the resource's health, because it's
+marked `exclude_from_hc: true`.
+
+`exclude_from_hc` is a Coolify extension, so plain `docker compose` rejects this
+file as it stands. To try the production stack locally, run a copy without that
+line:
+
+```bash
+grep -v exclude_from_hc docker-compose.prod.yml > /tmp/prod.yml
+POSTGRES_PASSWORD=local PUBLIC_URL=http://localhost:8081 WEB_PORT=8081 \
+  docker compose -p thefamilyvine-prod -f /tmp/prod.yml --project-directory . up --build
+```
