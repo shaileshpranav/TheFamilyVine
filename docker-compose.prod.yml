@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-familytree}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: familytree
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-familytree}"]
+      interval: 3s
+      retries: 20
+    restart: unless-stopped
+
+  supertokens:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRESQL_CONNECTION_URI: postgresql://${POSTGRES_USER:-familytree}:${POSTGRES_PASSWORD}@db:5432/supertokens
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+      supertokens:
+        condition: service_started
+    environment:
+      FT_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-familytree}:${POSTGRES_PASSWORD}@db:5432/familytree
+      FT_SUPERTOKENS_URI: http://supertokens:3567
+      FT_SUPERTOKENS_API_KEY: ${SUPERTOKENS_API_KEY:-}
+      # Frontend and API are served from the same origin (nginx proxies /api to this
+      # service), so both domains are this app's public URL (see PUBLIC_URL below).
+      FT_WEBSITE_DOMAIN: ${PUBLIC_URL:?set PUBLIC_URL to this app's public URL}
+      FT_API_DOMAIN: ${PUBLIC_URL:?set PUBLIC_URL to this app's public URL}
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    depends_on:
+      - backend
+    # No Coolify-managed domain/proxy for this service: exposure is handled directly
+    # via this host port (see docs/DEPLOY.md for the Tailscale Funnel setup). Give
+    # dev and production distinct WEB_PORT values so both can run on one host.
+    ports:
+      - "${WEB_PORT:?set WEB_PORT}:80"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
