@@ -5,7 +5,7 @@ import Session from 'supertokens-auth-react/recipe/session'
 export function initAuth() {
   SuperTokens.init({
     appInfo: {
-      appName: 'Family Tree',
+      appName: 'TheFamilyVine',
       apiDomain: window.location.origin,
       websiteDomain: window.location.origin,
       apiBasePath: '/api/auth',

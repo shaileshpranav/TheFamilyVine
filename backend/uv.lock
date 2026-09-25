@@ -529,51 +529,6 @@ wheels = [
 ]
 
 [[package]]
-name = "familytree-api"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "alembic" },
-    { name = "asyncpg" },
-    { name = "fastapi" },
-    { name = "pydantic", extra = ["email"] },
-    { name = "pydantic-settings" },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "supertokens-python" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "aiosqlite" },
-    { name = "httpx" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "alembic", specifier = ">=1.20.0" },
-    { name = "asyncpg", specifier = ">=0.31.0" },
-    { name = "fastapi", specifier = ">=0.141.1" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.13.5" },
-    { name = "pydantic-settings", specifier = ">=2.15.0" },
-    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.1.0" },
-    { name = "supertokens-python", specifier = ">=0.31.3" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "aiosqlite", specifier = ">=0.22.1" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "pytest", specifier = ">=9.1.1" },
-    { name = "pytest-asyncio", specifier = ">=1.4.0" },
-    { name = "ruff", specifier = ">=0.16.9" },
-]
-
-[[package]]
 name = "fastapi"
 version = "0.141.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1532,6 +1487,51 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b2/b3/fc1761e288bdc142a2ea156f9f5d66d0a228eddc4c16ee38a37d8bfb1caa/supertokens_python-0.31.3.tar.gz", hash = "sha256:8f38e9502cd028e2834a1df162fdcabb682ca00140689e0581a9a1d32afb513a", size = 486135, upload-time = "2026-05-06T21:14:13.256Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8e/02/6c970841001e491a1727c1509a071b21df3cc3aaf8b7860f47c624089b57/supertokens_python-0.31.3-py3-none-any.whl", hash = "sha256:2da6b51e9a864898660d41f11c0eaa270d81565960433b5750d257768084d295", size = 861164, upload-time = "2026-05-06T21:14:11.78Z" },
+]
+
+[[package]]
+name = "thefamilyvine-api"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "alembic" },
+    { name = "asyncpg" },
+    { name = "fastapi" },
+    { name = "pydantic", extra = ["email"] },
+    { name = "pydantic-settings" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "supertokens-python" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "aiosqlite" },
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "alembic", specifier = ">=1.20.0" },
+    { name = "asyncpg", specifier = ">=0.31.0" },
+    { name = "fastapi", specifier = ">=0.141.1" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.13.5" },
+    { name = "pydantic-settings", specifier = ">=2.15.0" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.1.0" },
+    { name = "supertokens-python", specifier = ">=0.31.3" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "aiosqlite", specifier = ">=0.22.1" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-asyncio", specifier = ">=1.4.0" },
+    { name = "ruff", specifier = ">=0.16.9" },
 ]
 
 [[package]]
