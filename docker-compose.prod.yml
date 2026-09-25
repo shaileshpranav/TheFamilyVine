@@ -13,6 +13,8 @@ services:
       interval: 3s
       retries: 20
     restart: unless-stopped
+    networks:
+      - familyvine
 
   supertokens:
     image: registry.supertokens.io/supertokens/supertokens-postgresql
@@ -22,6 +24,8 @@ services:
     environment:
       POSTGRESQL_CONNECTION_URI: postgresql://${POSTGRES_USER:-familytree}:${POSTGRES_PASSWORD}@db:5432/supertokens
     restart: unless-stopped
+    networks:
+      - familyvine
 
   backend:
     build: ./backend
@@ -39,6 +43,8 @@ services:
       FT_WEBSITE_DOMAIN: ${PUBLIC_URL:?set PUBLIC_URL to this app's public URL}
       FT_API_DOMAIN: ${PUBLIC_URL:?set PUBLIC_URL to this app's public URL}
     restart: unless-stopped
+    networks:
+      - familyvine
 
   web:
     build: ./frontend
@@ -50,6 +56,15 @@ services:
     ports:
       - "${WEB_PORT:?set WEB_PORT}:80"
     restart: unless-stopped
+    networks:
+      - familyvine
+
+networks:
+  # Declared explicitly (rather than relying on Compose's implicit default network)
+  # because Coolify doesn't always place every service of a Docker Compose resource
+  # on the same implicit network, which breaks service-name DNS resolution (e.g.
+  # supertokens/backend failing to reach "db").
+  familyvine:
 
 volumes:
   pgdata:
