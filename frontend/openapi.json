@@ -1,0 +1,4197 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Family Tree API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Get Me",
+        "operationId": "get_me_api_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Update Me",
+        "operationId": "update_me_api_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees": {
+      "get": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "List Trees",
+        "operationId": "list_trees_api_trees_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TreeListItem"
+                  },
+                  "type": "array",
+                  "title": "Response List Trees Api Trees Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "Create Tree",
+        "operationId": "create_tree_api_trees_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TreeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}": {
+      "get": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "Get Tree",
+        "operationId": "get_tree_api_trees__tree_id__get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreeDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "Update Tree",
+        "operationId": "update_tree_api_trees__tree_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TreeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "Delete Tree",
+        "operationId": "delete_tree_api_trees__tree_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/transfer": {
+      "post": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "Transfer Ownership",
+        "operationId": "transfer_ownership_api_trees__tree_id__transfer_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferOwnership"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/members": {
+      "get": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "List Members",
+        "operationId": "list_members_api_trees__tree_id__members_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberOut"
+                  },
+                  "title": "Response List Members Api Trees  Tree Id  Members Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/members/{member_id}": {
+      "patch": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "Update Member",
+        "operationId": "update_member_api_trees__tree_id__members__member_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Member Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "trees"
+        ],
+        "summary": "Remove Member",
+        "operationId": "remove_member_api_trees__tree_id__members__member_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Member Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/invites": {
+      "get": {
+        "tags": [
+          "invites"
+        ],
+        "summary": "List Invites",
+        "operationId": "list_invites_api_trees__tree_id__invites_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InviteOut"
+                  },
+                  "title": "Response List Invites Api Trees  Tree Id  Invites Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "invites"
+        ],
+        "summary": "Create Invite",
+        "operationId": "create_invite_api_trees__tree_id__invites_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/invites/{invite_id}": {
+      "delete": {
+        "tags": [
+          "invites"
+        ],
+        "summary": "Revoke Invite",
+        "operationId": "revoke_invite_api_trees__tree_id__invites__invite_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "invite_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invite Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{token}": {
+      "get": {
+        "tags": [
+          "invites"
+        ],
+        "summary": "Preview Invite",
+        "operationId": "preview_invite_api_invites__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitePreview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invites/{token}/accept": {
+      "post": {
+        "tags": [
+          "invites"
+        ],
+        "summary": "Accept Invite",
+        "operationId": "accept_invite_api_invites__token__accept_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/subtrees": {
+      "get": {
+        "tags": [
+          "subtrees"
+        ],
+        "summary": "List Subtrees",
+        "operationId": "list_subtrees_api_trees__tree_id__subtrees_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubtreeOut"
+                  },
+                  "title": "Response List Subtrees Api Trees  Tree Id  Subtrees Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "subtrees"
+        ],
+        "summary": "Create Subtree",
+        "operationId": "create_subtree_api_trees__tree_id__subtrees_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubtreeCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubtreeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/subtrees/{subtree_id}": {
+      "patch": {
+        "tags": [
+          "subtrees"
+        ],
+        "summary": "Update Subtree",
+        "operationId": "update_subtree_api_trees__tree_id__subtrees__subtree_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "subtree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subtree Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubtreeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubtreeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "subtrees"
+        ],
+        "summary": "Delete Subtree",
+        "operationId": "delete_subtree_api_trees__tree_id__subtrees__subtree_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "subtree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subtree Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/subtrees/{subtree_id}/people": {
+      "get": {
+        "tags": [
+          "subtrees"
+        ],
+        "summary": "Subtree People",
+        "operationId": "subtree_people_api_trees__tree_id__subtrees__subtree_id__people_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "subtree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Subtree Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonOut"
+                  },
+                  "title": "Response Subtree People Api Trees  Tree Id  Subtrees  Subtree Id  People Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/people": {
+      "get": {
+        "tags": [
+          "people"
+        ],
+        "summary": "List People",
+        "operationId": "list_people_api_trees__tree_id__people_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonOut"
+                  },
+                  "title": "Response List People Api Trees  Tree Id  People Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Create Person",
+        "operationId": "create_person_api_trees__tree_id__people_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/people/{person_id}": {
+      "get": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Get Person",
+        "operationId": "get_person_api_trees__tree_id__people__person_id__get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Update Person",
+        "operationId": "update_person_api_trees__tree_id__people__person_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Delete Person",
+        "operationId": "delete_person_api_trees__tree_id__people__person_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/people/{person_id}/linked-user": {
+      "put": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Link User",
+        "description": "Admins connect (or disconnect) a member's account to the person they are.",
+        "operationId": "link_user_api_trees__tree_id__people__person_id__linked_user_put",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/people/{person_id}/events": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Add Person Event",
+        "operationId": "add_person_event_api_trees__tree_id__people__person_id__events_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/families/{family_id}/events": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Add Family Event",
+        "operationId": "add_family_event_api_trees__tree_id__families__family_id__events_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/events/{event_id}": {
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Update Event",
+        "operationId": "update_event_api_trees__tree_id__events__event_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Delete Event",
+        "operationId": "delete_event_api_trees__tree_id__events__event_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/families/{family_id}": {
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Update Family",
+        "operationId": "update_family_api_trees__tree_id__families__family_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "family_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Family Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/places": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List Places",
+        "operationId": "list_places_api_trees__tree_id__places_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlaceOut"
+                  },
+                  "title": "Response List Places Api Trees  Tree Id  Places Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChildRelation": {
+        "type": "string",
+        "enum": [
+          "biological",
+          "adopted",
+          "step",
+          "foster"
+        ],
+        "title": "ChildRelation"
+      },
+      "DateQualifier": {
+        "type": "string",
+        "enum": [
+          "exact",
+          "about",
+          "before",
+          "after",
+          "between"
+        ],
+        "title": "DateQualifier"
+      },
+      "EventIn": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Description",
+            "default": ""
+          },
+          "date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "EventIn"
+      },
+      "EventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          },
+          "family_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDateOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "person_id",
+          "family_id",
+          "type",
+          "title",
+          "description",
+          "date",
+          "place"
+        ],
+        "title": "EventOut"
+      },
+      "EventType": {
+        "type": "string",
+        "enum": [
+          "birth",
+          "baptism",
+          "death",
+          "burial",
+          "education",
+          "occupation",
+          "retirement",
+          "residence",
+          "emigration",
+          "immigration",
+          "military",
+          "engagement",
+          "marriage",
+          "separation",
+          "divorce",
+          "other"
+        ],
+        "title": "EventType"
+      },
+      "EventUpdate": {
+        "properties": {
+          "type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EventType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          }
+        },
+        "type": "object",
+        "title": "EventUpdate"
+      },
+      "FamilyOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PartnerStatus"
+          },
+          "partner_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Partner Ids"
+          },
+          "child_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Child Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "partner_ids",
+          "child_ids"
+        ],
+        "title": "FamilyOut"
+      },
+      "FamilyUpdate": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/PartnerStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "FamilyUpdate"
+      },
+      "Favorite": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "value"
+        ],
+        "title": "Favorite"
+      },
+      "FuzzyDate": {
+        "properties": {
+          "qualifier": {
+            "$ref": "#/components/schemas/DateQualifier",
+            "default": "exact"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9999.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "month": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 12.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Month"
+          },
+          "day": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day"
+          },
+          "year2": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9999.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year2"
+          },
+          "month2": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 12.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Month2"
+          },
+          "day2": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day2"
+          },
+          "phrase": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Phrase",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "FuzzyDate"
+      },
+      "FuzzyDateOut": {
+        "properties": {
+          "qualifier": {
+            "$ref": "#/components/schemas/DateQualifier",
+            "default": "exact"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9999.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "month": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 12.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Month"
+          },
+          "day": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day"
+          },
+          "year2": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9999.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year2"
+          },
+          "month2": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 12.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Month2"
+          },
+          "day2": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day2"
+          },
+          "phrase": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Phrase",
+            "default": ""
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "readOnly": true
+          },
+          "short": {
+            "type": "string",
+            "title": "Short",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "qualifier",
+          "year",
+          "month",
+          "day",
+          "year2",
+          "month2",
+          "day2",
+          "phrase",
+          "label",
+          "short"
+        ],
+        "title": "FuzzyDateOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InviteAccepted": {
+        "properties": {
+          "tree_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tree Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tree_id"
+        ],
+        "title": "InviteAccepted"
+      },
+      "InviteCreate": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "contributor",
+              "personal"
+            ],
+            "title": "Role"
+          },
+          "subtree_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtree Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "InviteCreate"
+      },
+      "InviteOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "subtree_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtree Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "accepted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted At"
+          },
+          "revoked": {
+            "type": "boolean",
+            "title": "Revoked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "token",
+          "role",
+          "subtree_id",
+          "email",
+          "person_id",
+          "expires_at",
+          "accepted_at",
+          "revoked"
+        ],
+        "title": "InviteOut"
+      },
+      "InvitePreview": {
+        "properties": {
+          "tree_name": {
+            "type": "string",
+            "title": "Tree Name"
+          },
+          "subtree_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtree Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "person_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Name"
+          },
+          "usable": {
+            "type": "boolean",
+            "title": "Usable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tree_name",
+          "subtree_name",
+          "role",
+          "person_name",
+          "usable"
+        ],
+        "title": "InvitePreview"
+      },
+      "LinkUser": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "LinkUser"
+      },
+      "MemberOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "subtree_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtree Id"
+          },
+          "subtree_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtree Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user",
+          "role",
+          "subtree_id",
+          "subtree_name",
+          "created_at"
+        ],
+        "title": "MemberOut"
+      },
+      "MemberUpdate": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "contributor",
+              "personal"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "MemberUpdate"
+      },
+      "MyAccessOut": {
+        "properties": {
+          "tree_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subtree_roles": {
+            "items": {
+              "$ref": "#/components/schemas/SubtreeRoleOut"
+            },
+            "type": "array",
+            "title": "Subtree Roles"
+          },
+          "highest_role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "my_person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "My Person Id"
+          },
+          "can_manage_members": {
+            "type": "boolean",
+            "title": "Can Manage Members"
+          },
+          "can_manage_subtrees": {
+            "type": "boolean",
+            "title": "Can Manage Subtrees"
+          },
+          "can_create_people": {
+            "type": "boolean",
+            "title": "Can Create People"
+          },
+          "is_owner": {
+            "type": "boolean",
+            "title": "Is Owner"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tree_role",
+          "subtree_roles",
+          "highest_role",
+          "my_person_id",
+          "can_manage_members",
+          "can_manage_subtrees",
+          "can_create_people",
+          "is_owner"
+        ],
+        "title": "MyAccessOut"
+      },
+      "PartnerStatus": {
+        "type": "string",
+        "enum": [
+          "together",
+          "separated",
+          "divorced"
+        ],
+        "title": "PartnerStatus"
+      },
+      "PersonCreate": {
+        "properties": {
+          "given_names": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Given Names",
+            "default": ""
+          },
+          "surname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Surname",
+            "default": ""
+          },
+          "birth_surname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Birth Surname",
+            "default": ""
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Nickname",
+            "default": ""
+          },
+          "native_name": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Native Name",
+            "default": ""
+          },
+          "sex": {
+            "$ref": "#/components/schemas/Sex",
+            "default": "unknown"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio",
+            "default": ""
+          },
+          "occupation": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Occupation",
+            "default": ""
+          },
+          "nationality": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Nationality",
+            "default": ""
+          },
+          "education": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Education",
+            "default": ""
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/SocialLink-Input"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Links"
+          },
+          "vehicles": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Vehicles"
+          },
+          "pets": {
+            "items": {
+              "$ref": "#/components/schemas/Pet-Input"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Pets"
+          },
+          "favorites": {
+            "items": {
+              "$ref": "#/components/schemas/Favorite"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Favorites"
+          },
+          "is_living": {
+            "type": "boolean",
+            "title": "Is Living",
+            "default": true
+          },
+          "is_me": {
+            "type": "boolean",
+            "title": "Is Me",
+            "default": false
+          },
+          "relative": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RelativeLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "birth": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "death": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "PersonCreate"
+      },
+      "PersonDetailOut": {
+        "properties": {
+          "given_names": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Given Names",
+            "default": ""
+          },
+          "surname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Surname",
+            "default": ""
+          },
+          "birth_surname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Birth Surname",
+            "default": ""
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Nickname",
+            "default": ""
+          },
+          "native_name": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Native Name",
+            "default": ""
+          },
+          "sex": {
+            "$ref": "#/components/schemas/Sex",
+            "default": "unknown"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio",
+            "default": ""
+          },
+          "occupation": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Occupation",
+            "default": ""
+          },
+          "nationality": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Nationality",
+            "default": ""
+          },
+          "education": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Education",
+            "default": ""
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/SocialLink-Output"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Links"
+          },
+          "vehicles": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Vehicles"
+          },
+          "pets": {
+            "items": {
+              "$ref": "#/components/schemas/Pet-Output"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Pets"
+          },
+          "favorites": {
+            "items": {
+              "$ref": "#/components/schemas/Favorite"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Favorites"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tree_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tree Id"
+          },
+          "is_living": {
+            "type": "boolean",
+            "title": "Is Living"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "linked_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked User Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "birth": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VitalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "death": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VitalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/PersonPermissions"
+          },
+          "parents": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Parents"
+          },
+          "children": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Children"
+          },
+          "partners": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Partners"
+          },
+          "relatives": {
+            "items": {
+              "$ref": "#/components/schemas/RelativeOut"
+            },
+            "type": "array",
+            "title": "Relatives"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineItem"
+            },
+            "type": "array",
+            "title": "Timeline"
+          }
+        },
+        "type": "object",
+        "required": [
+          "given_names",
+          "surname",
+          "birth_surname",
+          "nickname",
+          "native_name",
+          "sex",
+          "bio",
+          "occupation",
+          "nationality",
+          "education",
+          "links",
+          "vehicles",
+          "pets",
+          "favorites",
+          "id",
+          "tree_id",
+          "is_living",
+          "display_name",
+          "linked_user_id",
+          "created_at",
+          "updated_at",
+          "birth",
+          "death",
+          "permissions",
+          "parents",
+          "children",
+          "partners",
+          "relatives",
+          "timeline"
+        ],
+        "title": "PersonDetailOut"
+      },
+      "PersonOut": {
+        "properties": {
+          "given_names": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Given Names",
+            "default": ""
+          },
+          "surname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Surname",
+            "default": ""
+          },
+          "birth_surname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Birth Surname",
+            "default": ""
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Nickname",
+            "default": ""
+          },
+          "native_name": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Native Name",
+            "default": ""
+          },
+          "sex": {
+            "$ref": "#/components/schemas/Sex",
+            "default": "unknown"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio",
+            "default": ""
+          },
+          "occupation": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Occupation",
+            "default": ""
+          },
+          "nationality": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Nationality",
+            "default": ""
+          },
+          "education": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Education",
+            "default": ""
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/SocialLink-Output"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Links"
+          },
+          "vehicles": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Vehicles"
+          },
+          "pets": {
+            "items": {
+              "$ref": "#/components/schemas/Pet-Output"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Pets"
+          },
+          "favorites": {
+            "items": {
+              "$ref": "#/components/schemas/Favorite"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Favorites"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tree_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tree Id"
+          },
+          "is_living": {
+            "type": "boolean",
+            "title": "Is Living"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "linked_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked User Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "birth": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VitalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "death": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VitalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "given_names",
+          "surname",
+          "birth_surname",
+          "nickname",
+          "native_name",
+          "sex",
+          "bio",
+          "occupation",
+          "nationality",
+          "education",
+          "links",
+          "vehicles",
+          "pets",
+          "favorites",
+          "id",
+          "tree_id",
+          "is_living",
+          "display_name",
+          "linked_user_id",
+          "created_at",
+          "updated_at",
+          "birth",
+          "death"
+        ],
+        "title": "PersonOut"
+      },
+      "PersonPermissions": {
+        "properties": {
+          "can_edit": {
+            "type": "boolean",
+            "title": "Can Edit"
+          },
+          "can_set_living": {
+            "type": "boolean",
+            "title": "Can Set Living"
+          },
+          "can_delete": {
+            "type": "boolean",
+            "title": "Can Delete"
+          },
+          "can_add_relatives": {
+            "type": "boolean",
+            "title": "Can Add Relatives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "can_edit",
+          "can_set_living",
+          "can_delete",
+          "can_add_relatives"
+        ],
+        "title": "PersonPermissions"
+      },
+      "PersonUpdate": {
+        "properties": {
+          "given_names": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Given Names"
+          },
+          "surname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Surname"
+          },
+          "birth_surname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Birth Surname"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "native_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Native Name"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sex"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "is_living": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Living"
+          },
+          "occupation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occupation"
+          },
+          "nationality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nationality"
+          },
+          "education": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Education"
+          },
+          "links": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SocialLink-Input"
+                },
+                "type": "array",
+                "maxItems": 12
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Links"
+          },
+          "vehicles": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 12
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicles"
+          },
+          "pets": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Pet-Input"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pets"
+          },
+          "favorites": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Favorite"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Favorites"
+          }
+        },
+        "type": "object",
+        "title": "PersonUpdate"
+      },
+      "Pet-Input": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Kind",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "Pet"
+      },
+      "Pet-Output": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Kind",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "kind"
+        ],
+        "title": "Pet"
+      },
+      "PlaceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "PlaceOut"
+      },
+      "RelativeLink": {
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Person Id"
+          },
+          "relation": {
+            "type": "string",
+            "enum": [
+              "parent",
+              "child",
+              "partner",
+              "sibling",
+              "step_parent",
+              "step_child",
+              "step_sibling"
+            ],
+            "title": "Relation"
+          },
+          "family_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Id"
+          },
+          "new_family": {
+            "type": "boolean",
+            "title": "New Family",
+            "default": false
+          },
+          "via_person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Via Person Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PartnerStatus",
+            "default": "together"
+          }
+        },
+        "type": "object",
+        "required": [
+          "person_id",
+          "relation"
+        ],
+        "title": "RelativeLink"
+      },
+      "RelativeOut": {
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Person Id"
+          },
+          "relation": {
+            "type": "string",
+            "enum": [
+              "parent",
+              "step_parent",
+              "partner",
+              "sibling",
+              "half_sibling",
+              "step_sibling",
+              "child",
+              "step_child"
+            ],
+            "title": "Relation"
+          },
+          "pedigree": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChildRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "family_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PartnerStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "via_person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Via Person Id"
+          },
+          "can_edit_family": {
+            "type": "boolean",
+            "title": "Can Edit Family",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "person_id",
+          "relation",
+          "pedigree",
+          "family_id",
+          "status",
+          "via_person_id",
+          "can_edit_family"
+        ],
+        "title": "RelativeOut"
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "personal",
+          "contributor",
+          "admin",
+          "owner"
+        ],
+        "title": "Role",
+        "description": "Membership roles, lowest to highest privilege."
+      },
+      "Sex": {
+        "type": "string",
+        "enum": [
+          "male",
+          "female",
+          "other",
+          "unknown"
+        ],
+        "title": "Sex"
+      },
+      "SocialLink-Input": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Label",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "SocialLink"
+      },
+      "SocialLink-Output": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Url"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Label",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "label"
+        ],
+        "title": "SocialLink"
+      },
+      "SubtreeCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "root_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Root Person Id"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/SubtreeDirection",
+            "default": "descendants"
+          },
+          "include_spouses": {
+            "type": "boolean",
+            "title": "Include Spouses",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "root_person_id"
+        ],
+        "title": "SubtreeCreate"
+      },
+      "SubtreeDirection": {
+        "type": "string",
+        "enum": [
+          "descendants",
+          "ancestors",
+          "both"
+        ],
+        "title": "SubtreeDirection"
+      },
+      "SubtreeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "root_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Root Person Id"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/SubtreeDirection"
+          },
+          "include_spouses": {
+            "type": "boolean",
+            "title": "Include Spouses"
+          },
+          "member_count": {
+            "type": "integer",
+            "title": "Member Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "root_person_id",
+          "direction",
+          "include_spouses",
+          "member_count"
+        ],
+        "title": "SubtreeOut"
+      },
+      "SubtreeRoleOut": {
+        "properties": {
+          "subtree_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Subtree Id"
+          },
+          "subtree_name": {
+            "type": "string",
+            "title": "Subtree Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subtree_id",
+          "subtree_name",
+          "role"
+        ],
+        "title": "SubtreeRoleOut"
+      },
+      "SubtreeUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "root_person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Root Person Id"
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubtreeDirection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "include_spouses": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Spouses"
+          }
+        },
+        "type": "object",
+        "title": "SubtreeUpdate"
+      },
+      "TimelineItem": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "event_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "person",
+              "family",
+              "child_birth",
+              "partner_death"
+            ],
+            "title": "Kind"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "type_label": {
+            "type": "string",
+            "title": "Type Label"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDateOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "family_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Id"
+          },
+          "related_person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Person Id"
+          },
+          "editable": {
+            "type": "boolean",
+            "title": "Editable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "event_id",
+          "kind",
+          "type",
+          "type_label",
+          "summary",
+          "title",
+          "description",
+          "date",
+          "place",
+          "family_id",
+          "related_person_id",
+          "editable"
+        ],
+        "title": "TimelineItem"
+      },
+      "TransferOwnership": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "TransferOwnership"
+      },
+      "TreeCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "TreeCreate"
+      },
+      "TreeDetailOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "access": {
+            "$ref": "#/components/schemas/MyAccessOut"
+          },
+          "person_count": {
+            "type": "integer",
+            "title": "Person Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "created_at",
+          "access",
+          "person_count"
+        ],
+        "title": "TreeDetailOut"
+      },
+      "TreeListItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "highest_role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "created_at",
+          "highest_role"
+        ],
+        "title": "TreeListItem"
+      },
+      "TreeOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "created_at"
+        ],
+        "title": "TreeOut"
+      },
+      "TreeUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "title": "TreeUpdate"
+      },
+      "UserOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "display_name",
+          "avatar_url"
+        ],
+        "title": "UserOut"
+      },
+      "UserUpdate": {
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdate"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VitalOut": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDateOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "place": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "date",
+          "place"
+        ],
+        "title": "VitalOut",
+        "description": "A birth or death: when and where."
+      }
+    }
+  }
+}
