@@ -7,7 +7,6 @@ services:
       POSTGRES_DB: familytree
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-familytree}"]
       interval: 3s
@@ -16,11 +15,38 @@ services:
     networks:
       - familyvine
 
-  supertokens:
-    image: registry.supertokens.io/supertokens/supertokens-postgresql
+  # Creates SuperTokens' database if it's missing, then exits. It runs on every deploy,
+  # so it also works on an existing data volume (Postgres only runs
+  # /docker-entrypoint-initdb.d scripts when the volume is brand new) and it doesn't
+  # depend on mounting a file from the repository, which Coolify doesn't provide.
+  db-init:
+    image: postgres:17
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-familytree}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      PGDATABASE: familytree
+    command:
+      - sh
+      - -c
+      - >-
+        psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'supertokens'" | grep -q 1
+        || psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE supertokens"
+    restart: "no"
+    # Coolify extension: this service exits once done, so don't count it towards the
+    # resource's health (see https://coolify.io/docs/applications/builds/docker-compose).
+    exclude_from_hc: true
+    networks:
+      - familyvine
+
+  supertokens:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
     environment:
       POSTGRESQL_CONNECTION_URI: postgresql://${POSTGRES_USER:-familytree}:${POSTGRES_PASSWORD}@db:5432/supertokens
     restart: unless-stopped
