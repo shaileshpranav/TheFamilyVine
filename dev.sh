@@ -58,7 +58,7 @@ trap cleanup EXIT INT TERM
 
 for _ in $(seq 1 60); do
   if curl -sf "localhost:$API_PORT/api/health" >/dev/null && curl -sf "localhost:$WEB_PORT" >/dev/null; then
-    say "Family Tree is running at http://localhost:$WEB_PORT  (Ctrl+C to stop)"
+    say "TheFamilyVine is running at http://localhost:$WEB_PORT  (Ctrl+C to stop)"
     break
   fi
   kill -0 "$API_PID" 2>/dev/null && kill -0 "$WEB_PID" 2>/dev/null || break

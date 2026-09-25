@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="FT_", extra="ignore")
 
-    app_name: str = "Family Tree"
+    app_name: str = "TheFamilyVine"
     database_url: str = "postgresql+asyncpg://familytree:familytree@localhost:5432/familytree"
 
     # SuperTokens

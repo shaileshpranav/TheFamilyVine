@@ -1,4 +1,4 @@
-# Family Tree
+# TheFamilyVine
 
 A self-hosted, multi-user family tree. The backend is FastAPI and Postgres, the web front end is React, and SuperTokens handles sign-in. The API is kept separate from the front end so a mobile app can use it later.
 

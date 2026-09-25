@@ -1,8 +1,7 @@
 [project]
-name = "familytree-api"
+name = "thefamilyvine-api"
 version = "0.1.0"
-description = "Family tree API"
-
+description = "TheFamilyVine API"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.0",
