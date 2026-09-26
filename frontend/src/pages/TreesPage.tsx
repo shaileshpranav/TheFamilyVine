@@ -3,6 +3,7 @@ import { Link, Navigate, useSearchParams } from 'react-router'
 import { useMe, useTrees } from '../api/hooks'
 import { Empty, ErrorText, Loading, PageHeader, RoleBadge } from '../components/ui'
 import { staggerIndex } from '../lib/format'
+import { photoUrl } from '../lib/photos'
 import { treeLink } from '../lib/preferences'
 
 export default function TreesPage() {
@@ -37,6 +38,7 @@ export default function TreesPage() {
           {trees.map((t, i) => (
             <li key={t.id} style={staggerIndex(i)}>
               <Link to={treeLink(t.id, me?.preferences)} className="card card-link" style={{ height: '100%' }}>
+                {t.cover_photo_id && <img className="card-cover" src={photoUrl(t.id, t.cover_photo_id)!} alt="" />}
                 <div className="actions" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
                   <h2 className="card-title">{t.name}</h2>
                   <RoleBadge role={t.highest_role} />

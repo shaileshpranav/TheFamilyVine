@@ -226,6 +226,56 @@ const FAMILIES: SeedFamily[] = [
     ] },
 ]
 
+// ---- health (see app/health.py) --------------------------------------------------------
+
+type ConditionStatus = Schemas['ConditionStatus']
+const HEALTH: Record<string, [name: string, status: ConditionStatus, year: number | null, note: string][]> = {
+  arthur: [['Coronary artery disease', 'diagnosed', 1998, ''], ['Type 2 diabetes', 'diagnosed', 1990, '']],
+  beatrice: [['Glaucoma', 'diagnosed', 2004, '']],
+  margaret: [['Type 2 diabetes', 'diagnosed', 2011, '']],
+  james: [['High blood pressure', 'diagnosed', 2009, '']],
+  david: [['Type 2 diabetes', 'watch', 2021, 'Pre-diabetic']],
+  ellie: [['BRCA1 / BRCA2', 'untested', null, 'No family history recorded']],
+  marco: [['Coeliac disease', 'diagnosed', 2011, '']],
+}
+
+/** What close blood relatives have recorded (parents to great-grandparents, and siblings). */
+function conditionsFor(id: string): Schemas['ConditionsOut'] {
+  const recorded = (HEALTH[id] ?? []).map(([name, status, year, note], i) => ({
+    id: `c-${id}-${i}`, person_id: id, name, status, year, note,
+  }))
+  const own = new Set(recorded.map((c) => c.name.toLowerCase()))
+  // Ancestors by generation, remembering the way back down.
+  const below = new Map<string, string>()
+  const gen = new Map<string, number>()
+  let frontier = [id]
+  for (let g = 1; g <= 3 && frontier.length; g++) {
+    frontier = frontier.flatMap((x) =>
+      parentsOf(x).filter((p) => !gen.has(p)).map((p) => (gen.set(p, g), below.set(p, x), p)),
+    )
+  }
+  const siblings = uniq(parentsOf(id).flatMap(childrenOf)).filter((x) => x !== id)
+  siblings.forEach((x) => gen.set(x, 0))
+  const found = new Map<string, Schemas['InheritedConditionOut']>()
+  const byCloseness = [...gen].sort((a, b) => Math.max(a[1], 1) - Math.max(b[1], 1) || a[1] - b[1])
+  for (const [source, g] of byCloseness) {
+    if (!ELLIES_BLOOD.has(source)) continue
+    for (const [name, status] of HEALTH[source] ?? []) {
+      const key = name.toLowerCase()
+      if (own.has(key) || (status !== 'diagnosed' && status !== 'carrier')) continue
+      const known = found.get(key)
+      if (known) {
+        known.others += 1
+        continue
+      }
+      const via: string[] = []
+      if (g > 1) for (let x: string | undefined = source; x && x !== id; x = below.get(x)) via.push(x)
+      found.set(key, { name, status, source_id: source, via, generations: g, others: 0 })
+    }
+  }
+  return { recorded, inherited: [...found.values()] }
+}
+
 // ---- simplified kinship (see app/kinship.py) -------------------------------------------
 
 const uniq = <T,>(xs: T[]) => [...new Set(xs)]
@@ -296,14 +346,21 @@ const COUPLE: Partial<Record<EventType, string>> = {
 
 // ---- building the dataset --------------------------------------------------------------
 
+// Ellie's blood relatives (and Ellie): the only people whose health she may see.
+const ELLIES_BLOOD = new Set(['ellie', 'arthur', 'beatrice', 'james', 'margaret', 'david', 'tom', 'grace', 'sofia'])
+
 function permissionsFor(role: Role, person: Person): Schemas['PersonPermissions'] {
   const rank = RANK[role]
   const isMe = person.linked_user_id === ME.id
+  const canEdit = isMe || rank >= RANK.admin || (role === 'contributor' && !person.is_living)
+  const blood = ELLIES_BLOOD.has(person.id)
   return {
-    can_edit: isMe || rank >= RANK.admin || (role === 'contributor' && !person.is_living),
+    can_edit: canEdit,
     can_set_living: rank >= RANK.admin,
     can_delete: rank >= RANK.admin,
     can_add_relatives: rank >= RANK.contributor,
+    can_view_conditions: blood,
+    can_edit_conditions: person.is_living ? isMe : blood && canEdit,
   }
 }
 
@@ -334,6 +391,7 @@ export interface Dataset {
   invitePreview: Record<string, Schemas['InvitePreview']>
   places: Record<string, Schemas['PlaceOut'][]>
   graph: Record<string, Schemas['TreeGraphOut']>
+  conditions: Record<string, Record<string, Schemas['ConditionsOut']>>
 }
 
 export function buildDataset(role: Role): Dataset {
@@ -345,6 +403,7 @@ export function buildDataset(role: Role): Dataset {
   const people: Person[] = HOLLIS.map((s) => ({
     id: s.id,
     tree_id: hollis,
+    photo_id: null,
     given_names: s.given,
     surname: s.surname,
     birth_surname: s.birthSurname ?? '',
@@ -496,6 +555,7 @@ export function buildDataset(role: Role): Dataset {
       sex: p.sex,
       is_living: p.is_living,
       linked_user_id: p.linked_user_id,
+      photo_id: p.photo_id,
       birth: p.birth,
       death: p.death,
     })),
@@ -521,18 +581,24 @@ export function buildDataset(role: Role): Dataset {
     me: ME,
     trees: [
       { id: hollis, name: 'The Hollis Family', description: 'Four generations, from Leeds and Cork to Portland.',
-        created_at: ago(63), highest_role: role },
+        created_at: ago(63), highest_role: role, cover_photo_id: null },
       { id: raman, name: 'The Raman Family', description: 'Priya’s side, started this spring.',
-        created_at: ago(20), highest_role: 'contributor' },
+        created_at: ago(20), highest_role: 'contributor', cover_photo_id: null },
     ],
     tree: {
       [hollis]: { id: hollis, name: 'The Hollis Family', description: 'Four generations, from Leeds and Cork to Portland.',
-        created_at: ago(63), access: accessFor(role, 'ellie'), person_count: people.length },
+        created_at: ago(63), access: accessFor(role, 'ellie'), person_count: people.length,
+        cover_photo_id: null, photo_count: 0 },
       [raman]: { id: raman, name: 'The Raman Family', description: 'Priya’s side, started this spring.',
-        created_at: ago(20), access: accessFor('contributor', null), person_count: 0 },
+        created_at: ago(20), access: accessFor('contributor', null), person_count: 0,
+        cover_photo_id: null, photo_count: 0 },
     },
     people: { [hollis]: [...people].sort(sortByName), [raman]: [] },
     person: { [hollis]: details, [raman]: {} },
+    conditions: {
+      [hollis]: Object.fromEntries([...ELLIES_BLOOD].map((id) => [id, conditionsFor(id)])),
+      [raman]: {},
+    },
     members: {
       [hollis]: members,
       [raman]: [member('m-priya', 'priya', 'owner', 20), member('m-ellie-r', 'ellie', 'contributor', 18)],

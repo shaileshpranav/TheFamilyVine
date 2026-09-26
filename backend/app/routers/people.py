@@ -4,9 +4,10 @@ import uuid
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import or_, select
 
+from app import health, photos
 from app.deps import DB, Access, forbidden, get_visible_person, not_found
 from app.kinship import RELATION_ORDER, Kin
-from app.models import Event, EventType, Membership, Person
+from app.models import Event, EventType, Membership, Person, Photo
 from app.permissions import TreeAccess
 from app.relations import attach_relative, detach_relative
 from app.schemas import (
@@ -32,6 +33,8 @@ async def _detail(db: DB, access: TreeAccess, person: Person) -> PersonDetailOut
 
     def visible(pid: uuid.UUID) -> bool:
         return pid in people and access.can_view_person(people[pid])
+
+    me = health.my_person_id(access, people)
 
     relatives: list[RelativeOut] = []
     for rel in kin.relatives(person.id):
@@ -75,6 +78,8 @@ async def _detail(db: DB, access: TreeAccess, person: Person) -> PersonDetailOut
             can_set_living=access.can_set_living(person),
             can_delete=access.can_delete_person(person),
             can_add_relatives=access.can_attach_to(person),
+            can_view_conditions=health.can_view(access, kin, me, person),
+            can_edit_conditions=health.can_edit(access, kin, me, person),
         ),
         parents=sorted((p for p in kin.parents(person.id) if visible(p)), key=str),
         children=sorted((c for c in kin.children(person.id) if visible(c)), key=str),
@@ -241,8 +246,10 @@ async def delete_person(tree_id: uuid.UUID, person_id: uuid.UUID, access: Access
     person = await get_visible_person(db, access, person_id)
     if not access.can_delete_person(person):
         raise forbidden()
+    photo_ids = list(await db.scalars(select(Photo.id).where(Photo.person_id == person.id)))
     await db.delete(person)
     await db.commit()
+    photos.remove(tree_id, photo_ids)
 
 
 @router.put("/{person_id}/linked-user", response_model=PersonDetailOut)

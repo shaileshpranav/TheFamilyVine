@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { api, unwrap } from '../api/client'
 import { keys, useCurrentTree, useInvalidateTree, useMe, useMembers } from '../api/hooks'
+import CoverCard from '../components/CoverCard'
 import { ErrorText, Field, Label, PageHeader, Reveal } from '../components/ui'
 
 export default function SettingsTab() {
@@ -16,6 +17,11 @@ export default function SettingsTab() {
         {access.can_manage_subtrees && (
           <Reveal>
             <TreeDetails />
+          </Reveal>
+        )}
+        {access.can_manage_subtrees && (
+          <Reveal delay={40}>
+            <CoverCard tree={tree} />
           </Reveal>
         )}
         <Reveal delay={80}>{access.is_owner ? <OwnerZone /> : <LeaveTree />}</Reveal>

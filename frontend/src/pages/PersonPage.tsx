@@ -5,6 +5,8 @@ import type { PersonDetail, Schemas } from '../api/client'
 import { useCurrentTree, useKin, usePeople, usePerson } from '../api/hooks'
 import AddPersonForm from '../components/AddPersonForm'
 import FamilySection from '../components/FamilySection'
+import HealthCard from '../components/HealthCard'
+import PhotoGallery from '../components/PhotoGallery'
 import ProfileEditor from '../components/ProfileEditor'
 import { DetailsCard, FavoritesCard, Links, PetsCard } from '../components/ProfileDetails'
 import RelationPicker from '../components/RelationPicker'
@@ -13,6 +15,7 @@ import { Avatar, ErrorText, Label, LivingBadge, Loading, Reveal, YouTag } from '
 import { lifespan } from '../lib/dates'
 import type { EventType, NewRelation } from '../lib/genealogy'
 import { relationToYou } from '../lib/relationship'
+import { photoUrl } from '../lib/photos'
 
 type Panel = null | 'edit' | 'pick' | { relation: NewRelation }
 
@@ -56,7 +59,13 @@ export default function PersonPage() {
       </Link>
 
       <header className="person-head page-enter">
-        <Avatar name={person.display_name} size="lg" me={isMe} deceased={!person.is_living} />
+        <Avatar
+          name={person.display_name}
+          size="lg"
+          me={isMe}
+          deceased={!person.is_living}
+          photo={photoUrl(tree.id, person.photo_id)}
+        />
         <div className="grow">
           <h1>
             {person.display_name}
@@ -129,6 +138,9 @@ export default function PersonPage() {
                 <Links links={person.links} />
               </section>
             </Reveal>
+            <Reveal className="p-photos" delay={60}>
+              <PhotoGallery treeId={tree.id} person={person} />
+            </Reveal>
             <Reveal className="p-family" delay={100}>
               <FamilySection treeId={tree.id} person={person} people={people} meId={meId} />
             </Reveal>
@@ -142,6 +154,11 @@ export default function PersonPage() {
             <Reveal className="p-details" delay={60}>
               <DetailsCard person={person} onAddBirth={perms.can_edit ? () => startAdding('birth') : undefined} />
             </Reveal>
+            {perms.can_view_conditions && (
+              <Reveal className="p-health" delay={120}>
+                <HealthCard treeId={tree.id} person={person} people={people} />
+              </Reveal>
+            )}
             {person.favorites.length > 0 && (
               <Reveal className="p-favorites" delay={180}>
                 <FavoritesCard person={person} />

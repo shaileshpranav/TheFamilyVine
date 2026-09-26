@@ -68,6 +68,10 @@ services:
       # service), so both domains are this app's public URL (see PUBLIC_URL below).
       FT_WEBSITE_DOMAIN: ${PUBLIC_URL:?set PUBLIC_URL to this app's public URL}
       FT_API_DOMAIN: ${PUBLIC_URL:?set PUBLIC_URL to this app's public URL}
+      FT_MEDIA_DIR: /data/media
+    volumes:
+      # Uploaded photos. Back this up along with the database.
+      - media:/data/media
     restart: unless-stopped
     networks:
       - familyvine
@@ -94,3 +98,4 @@ networks:
 
 volumes:
   pgdata:
+  media:

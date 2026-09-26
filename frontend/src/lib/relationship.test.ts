@@ -10,6 +10,7 @@ const person = (id: string, sex: GraphPerson['sex']): GraphPerson => ({
   sex,
   is_living: true,
   linked_user_id: null,
+  photo_id: null,
   birth: null,
   death: null,
 })

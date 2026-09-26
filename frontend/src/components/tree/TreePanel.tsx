@@ -6,8 +6,10 @@ import { lifespan } from '../../lib/dates'
 import { type NewRelation, RELATION_NAME, STATUS_LABEL } from '../../lib/genealogy'
 import AddPersonForm from '../AddPersonForm'
 import { MakeParentButton } from '../FamilySection'
+import HealthCard from '../HealthCard'
 import RelationPicker from '../RelationPicker'
 import { Avatar, ErrorText, Label, LivingBadge, Loading, YouTag } from '../ui'
+import { photoUrl } from '../../lib/photos'
 
 export type PanelMode = 'view' | 'pick' | { relation: NewRelation }
 
@@ -54,7 +56,13 @@ export default function TreePanel({
       ) : (
         <>
           <header className="tree-panel-head">
-            <Avatar name={person.display_name} size="lg" me={person.id === tree.access.my_person_id} deceased={!person.is_living} />
+            <Avatar
+              name={person.display_name}
+              size="lg"
+              me={person.id === tree.access.my_person_id}
+              deceased={!person.is_living}
+              photo={photoUrl(tree.id, person.photo_id)}
+            />
             <div className="grow">
               <h2 className="tree-panel-name">{person.display_name}</h2>
               {person.native_name && <p className="small">{person.native_name}</p>}
@@ -134,6 +142,12 @@ export default function TreePanel({
                 </dl>
               )}
 
+              {person.permissions.can_view_conditions && (
+                <div className="tree-panel-section">
+                  <HealthCard treeId={tree.id} person={person} people={people} compact />
+                </div>
+              )}
+
               {person.relatives.length > 0 && (
                 <section className="tree-panel-section">
                   <Label>Family</Label>
@@ -145,7 +159,13 @@ export default function TreePanel({
                       return (
                         <li key={r.person_id} className="relative-row">
                           <button type="button" className="rel-link tree-panel-rel grow" onClick={() => onSelect(r.person_id)}>
-                            <Avatar name={name} size="sm" me={r.person_id === tree.access.my_person_id} deceased={p ? !p.is_living : false} />
+                            <Avatar
+                              name={name}
+                              size="sm"
+                              me={r.person_id === tree.access.my_person_id}
+                              deceased={p ? !p.is_living : false}
+                              photo={photoUrl(tree.id, p?.photo_id)}
+                            />
                             <span className="grow">
                               <span className="rel-name">{name}</span>
                               <span className="rel-sub">

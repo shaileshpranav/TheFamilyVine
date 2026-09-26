@@ -6,6 +6,7 @@ import { AccessCard, TreeLinksCard, YourProfileCard } from '../components/TreeCa
 import { Avatar, Label, PageHeader, Reveal, Tag, YouTag } from '../components/ui'
 import { staggerIndex, timeAgo } from '../lib/format'
 import { assignGenerations } from '../lib/treeLayout'
+import { photoUrl } from '../lib/photos'
 
 export default function TreeHome() {
   const tree = useCurrentTree()
@@ -31,8 +32,14 @@ export default function TreeHome() {
   // Branch-only members add people from a relative's page so they stay inside their branch.
   const canAddFreestanding = access.can_create_people && access.tree_role !== null
 
+  const cover = photoUrl(tree.id, tree.cover_photo_id, 'full')
   return (
     <>
+      {cover && (
+        <div className="tree-cover page-enter">
+          <img src={cover} alt="" />
+        </div>
+      )}
       <PageHeader
         kicker={myName ? `Welcome back, ${myName}` : 'Family tree'}
         title={tree.name}
@@ -66,6 +73,11 @@ export default function TreeHome() {
           {count} {count === 1 ? 'person' : 'people'}
         </Tag>
         {living !== undefined && <Tag tone="green">{living} living</Tag>}
+        {tree.photo_count > 0 && (
+          <Tag>
+            {tree.photo_count} {tree.photo_count === 1 ? 'photo' : 'photos'}
+          </Tag>
+        )}
         {subtrees && subtrees.length > 0 && (
           <Tag tone="blue">
             {subtrees.length} {subtrees.length === 1 ? 'branch' : 'branches'}
@@ -106,6 +118,7 @@ export default function TreeHome() {
                         name={p.display_name}
                         me={p.id === access.my_person_id}
                         deceased={!p.is_living}
+                        photo={photoUrl(tree.id, p.photo_id)}
                       />
                       <div className="grow">
                         <div className="row-title">

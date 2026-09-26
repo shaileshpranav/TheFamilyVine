@@ -220,7 +220,7 @@ export default function AddPersonForm({
         {existing ? (
           <div className="field grid-full">
             <span className="field-label">Person</span>
-            <PersonPicker people={candidates} value={pickedId} onChange={setPickedId} />
+            <PersonPicker treeId={treeId} people={candidates} value={pickedId} onChange={setPickedId} />
           </div>
         ) : (
           <>

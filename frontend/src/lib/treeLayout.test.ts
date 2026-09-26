@@ -22,6 +22,7 @@ function person(id: string, birth?: number): GraphPerson {
     sex: 'unknown',
     is_living: true,
     linked_user_id: null,
+    photo_id: null,
     death: null,
     birth: birth
       ? {

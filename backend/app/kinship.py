@@ -172,6 +172,32 @@ class Kin:
                         stack.append(child)
         return out
 
+    def ancestry(self, pid: PersonId) -> dict[PersonId | tuple[str, FamilyId], int]:
+        """A person and everyone above them, by generation (the person is 0).
+
+        Each family counts too, as the shared parents of its children whether or not they're
+        recorded, so siblings with no parents on the tree still meet there.
+        """
+        out: dict[PersonId | tuple[str, FamilyId], int] = {pid: 0}
+        frontier = [pid]
+        for gen in range(1, 64):
+            nxt: list[PersonId] = []
+            for person in frontier:
+                for fid in self.birth_families(person):
+                    out.setdefault(("family", fid), gen)
+                    for parent in self.families[fid].partners:
+                        if parent not in out:
+                            out[parent] = gen
+                            nxt.append(parent)
+            if not nxt:
+                break
+            frontier = nxt
+        return out
+
+    def blood_related(self, a: PersonId, b: PersonId) -> bool:
+        """Do their lines meet: one descends from the other, or they share ancestors?"""
+        return a == b or not self.ancestry(a).keys().isdisjoint(self.ancestry(b).keys())
+
     def couples(self, a: PersonId, b: PersonId) -> list[FamilyId]:
         """Families in which `a` and `b` are partners."""
         return [f for f in self.partner_in.get(a, ()) if b in self.families[f].partners]

@@ -25,6 +25,8 @@ const ROUTES: [RegExp, Handler][] = [
     },
   ],
   [/^\/api\/trees\/([^/]+)\/people\/([^/]+)$/, (d, [, t, p]) => d.person[t]?.[p]],
+  [/^\/api\/trees\/([^/]+)\/people\/([^/]+)\/photos$/, (d, [, t, p]) => (d.person[t]?.[p] ? [] : undefined)],
+  [/^\/api\/trees\/([^/]+)\/people\/([^/]+)\/conditions$/, (d, [, t, p]) => d.conditions[t]?.[p]],
   [/^\/api\/trees\/([^/]+)\/members$/, (d, [, t]) => d.members[t]],
   [/^\/api\/trees\/([^/]+)\/invites$/, (d, [, t]) => d.invites[t]],
   [/^\/api\/trees\/([^/]+)\/subtrees$/, (d, [, t]) => d.subtrees[t]],

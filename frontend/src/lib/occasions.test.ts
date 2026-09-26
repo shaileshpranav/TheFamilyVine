@@ -16,6 +16,7 @@ const person = (id: string, living: boolean, born?: ReturnType<typeof date>, die
   sex: 'unknown',
   is_living: living,
   linked_user_id: null,
+  photo_id: null,
   birth: born ?? null,
   death: died ?? null,
 })

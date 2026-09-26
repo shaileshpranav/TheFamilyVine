@@ -7,6 +7,7 @@ import AddPersonForm from '../components/AddPersonForm'
 import { Avatar, Empty, ErrorText, LivingBadge, Loading, PageHeader, YouTag } from '../components/ui'
 import { lifespan } from '../lib/dates'
 import { staggerIndex } from '../lib/format'
+import { photoUrl } from '../lib/photos'
 
 type Adding = null | 'other' | 'me'
 
@@ -95,7 +96,14 @@ export default function PeopleTab() {
         <div className="card card-flush">
           <ul className="rows stagger">
             {people.map((p, i) => (
-              <PersonRow key={p.id} person={p} index={i} isMe={p.id === meId} relation={relationOf(p.id)} />
+              <PersonRow
+                key={p.id}
+                person={p}
+                index={i}
+                isMe={p.id === meId}
+                relation={relationOf(p.id)}
+                photo={photoUrl(tree.id, p.photo_id)}
+              />
             ))}
           </ul>
         </div>
@@ -115,11 +123,13 @@ function PersonRow({
   isMe,
   index,
   relation,
+  photo,
 }: {
   person: Person
   isMe: boolean
   index: number
   relation: string | null
+  photo: string | null
 }) {
   const span = lifespan(person.birth, person.death)
   const secondary = [person.native_name, person.birth_surname && `née ${person.birth_surname}`, person.nickname && `“${person.nickname}”`]
@@ -128,7 +138,7 @@ function PersonRow({
   return (
     <li style={staggerIndex(index)}>
       <Link to={person.id} className="row">
-        <Avatar name={person.display_name} me={isMe} deceased={!person.is_living} />
+        <Avatar name={person.display_name} me={isMe} deceased={!person.is_living} photo={photo} />
         <div className="grow">
           <div className="row-title">
             {person.display_name}
