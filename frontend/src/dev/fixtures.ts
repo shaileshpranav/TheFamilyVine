@@ -234,11 +234,21 @@ const childrenOf = (id: string) => uniq(partnerIn(id).flatMap((f) => f.children)
 const partnersOf = (id: string) =>
   partnerIn(id).flatMap((f) => f.partners.filter((x) => x !== id).map((x) => ({ id: x, family: f })))
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x))
+/** The family in which `parent` is `child`'s only recorded parent. */
+const soleParentFamily = (child: string, parent: string) =>
+  childIn(child).find((f) => sameSet(f.partners, [parent]))
+/** The couple a step-parent's child could join, making the step-parent a parent too. */
+const joinableCouple = (child: string, stepParent: string) =>
+  parentsOf(child).includes(stepParent)
+    ? undefined
+    : partnersOf(stepParent).find((q) => soleParentFamily(child, q.id))?.family
 
-function relativesOf(id: string): Omit<Relative, 'can_edit_family'>[] {
-  const out: Omit<Relative, 'can_edit_family'>[] = []
+type SeedRelative = Omit<Relative, 'can_edit_family' | 'can_make_parent'>
+
+function relativesOf(id: string): SeedRelative[] {
+  const out: SeedRelative[] = []
   const seen = new Set([id])
-  const add = (r: Omit<Relative, 'can_edit_family'>) => {
+  const add = (r: SeedRelative) => {
     if (!seen.has(r.person_id)) {
       seen.add(r.person_id)
       out.push(r)
@@ -315,6 +325,7 @@ export interface Dataset {
   subtreePeople: Record<string, Record<string, Person[]>>
   invitePreview: Record<string, Schemas['InvitePreview']>
   places: Record<string, Schemas['PlaceOut'][]>
+  graph: Record<string, Schemas['TreeGraphOut']>
 }
 
 export function buildDataset(role: Role): Dataset {
@@ -399,10 +410,17 @@ export function buildDataset(role: Role): Dataset {
 
   const details = Object.fromEntries(
     people.map((p) => {
-      const relatives = relativesOf(p.id).map((r) => ({
-        ...r,
-        can_edit_family: r.relation === 'partner' && !!r.family_id && canEditFamily(FAMILIES.find((f) => f.id === r.family_id)!),
-      }))
+      const relatives = relativesOf(p.id).map((r) => {
+        const couple =
+          r.relation === 'step_parent' ? joinableCouple(p.id, r.person_id)
+          : r.relation === 'step_child' ? joinableCouple(r.person_id, p.id)
+          : undefined
+        return {
+          ...r,
+          can_edit_family: r.relation === 'partner' && !!r.family_id && canEditFamily(FAMILIES.find((f) => f.id === r.family_id)!),
+          can_make_parent: !!couple && canEditFamily(couple),
+        }
+      })
       return [
         p.id,
         {
@@ -411,6 +429,7 @@ export function buildDataset(role: Role): Dataset {
           parents: parentsOf(p.id),
           children: childrenOf(p.id),
           partners: partnersOf(p.id).map((q) => q.id),
+          only_parent_of: childrenOf(p.id).filter((c) => soleParentFamily(c, p.id)),
           relatives,
           timeline: timelineFor(p.id),
         } satisfies PersonDetail,
@@ -459,6 +478,30 @@ export function buildDataset(role: Role): Dataset {
       person_id: null, expires_at: ahead(5), accepted_at: null, revoked: false },
   ]
 
+  const graph: Schemas['TreeGraphOut'] = {
+    people: people.map((p) => ({
+      id: p.id,
+      display_name: p.display_name,
+      given_names: p.given_names,
+      surname: p.surname,
+      sex: p.sex,
+      is_living: p.is_living,
+      linked_user_id: p.linked_user_id,
+      birth: p.birth,
+      death: p.death,
+    })),
+    families: FAMILIES.map((f) => {
+      const married = (f.events ?? []).find((e) => e.type === 'marriage')?.date
+      return {
+        id: f.id,
+        status: f.status,
+        partner_ids: f.partners,
+        children: f.children.map((c) => ({ person_id: c, relation: 'biological' as const })),
+        marriage: married ? fd(married) : null,
+      }
+    }),
+  }
+
   const raman = 'raman'
   const sortByName = (a: Person, b: Person) =>
     a.surname.localeCompare(b.surname) || a.given_names.localeCompare(b.given_names)
@@ -497,5 +540,6 @@ export function buildDataset(role: Role): Dataset {
       expired: { tree_name: 'The Hollis Family', subtree_name: null, role: 'personal', person_name: null, usable: false },
     },
     places: { [hollis]: places, [raman]: [] },
+    graph: { [hollis]: graph, [raman]: { people: [], families: [] } },
   }
 }

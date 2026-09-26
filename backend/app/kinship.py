@@ -160,6 +160,29 @@ class Kin:
         """Families this person was born or adopted into (not step links)."""
         return [f for f in self.child_in.get(pid, ()) if self.families[f].children[pid] != STEP]
 
+    def sole_parent_family(self, child: PersonId, parent: PersonId) -> FamilyId | None:
+        """The family in which `parent` is `child`'s only recorded parent, if there is one."""
+        for fid in self.birth_families(child):
+            if self.families[fid].partners == [parent]:
+                return fid
+        return None
+
+    def joinable_couple(
+        self, child: PersonId, step_parent: PersonId
+    ) -> tuple[FamilyId, FamilyId] | None:
+        """Can this step-parent be recorded as a parent instead?
+
+        Only when their partner is the child's only recorded parent. Returns the family the
+        child is in now and the couple's family, which the child can move into.
+        """
+        if step_parent in self.blood_parents(child):
+            return None
+        for partner, couple, _status in self.partners(step_parent):
+            source = self.sole_parent_family(child, partner)
+            if source is not None:
+                return source, couple
+        return None
+
     # ---- derived relations -------------------------------------------------------------
 
     def siblings(self, pid: PersonId) -> dict[PersonId, Literal["full", "half"]]:

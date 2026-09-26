@@ -3,7 +3,8 @@
 Only parent/child and partner links are stored (see app.kinship), so every relation is
 expressed through families:
 
-- partner:      a new couple of the two of them
+- partner:      a new couple of the two of them, taking in any of the anchor's children who
+                have no other parent recorded and are the new partner's children too
 - parent:       join the anchor's birth family as a parent (or start one)
 - child:        join one of the anchor's couples as a child (or start a single-parent family)
 - sibling:      join the anchor's birth family as a child (or start a parentless one)
@@ -15,10 +16,11 @@ expressed through families:
 import uuid
 
 from fastapi import HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.kinship import Kin
-from app.models import ChildLink, Family, FamilyPartner, Person
+from app.models import ChildLink, Event, Family, FamilyPartner, Person
 from app.schemas import RelativeLink
 
 
@@ -63,6 +65,30 @@ async def _single_parent_family(
     return family
 
 
+async def move_child(
+    db: AsyncSession, child_id: uuid.UUID, source_id: uuid.UUID, target: Family
+) -> None:
+    """Move a child into `target`, keeping how they're related (biological, adopted…).
+
+    `target` needs its children loaded: a family read from the database, or a new one made
+    with `children=[]` (otherwise a flush below leaves the list to a lazy load, which async
+    code can't do). The old family is removed once only the parent is left in it, unless
+    events such as a baptism still belong to it.
+    """
+    source = await _family(db, source_id)
+    link = next(c for c in source.children if c.person_id == child_id)
+    source.children.remove(link)
+    existing = next((c for c in target.children if c.person_id == child_id), None)
+    if existing is not None:
+        existing.relation = link.relation
+    else:
+        target.children.append(ChildLink(person_id=child_id, relation=link.relation))
+    if not source.children:
+        has_events = await db.scalar(select(Event.id).where(Event.family_id == source.id).limit(1))
+        if has_events is None:
+            await db.delete(source)
+
+
 async def attach_relative(
     db: AsyncSession, new: Person, link: RelativeLink, anchor: Person
 ) -> None:
@@ -72,13 +98,21 @@ async def attach_relative(
 
     match link.relation:
         case "partner":
-            db.add(
-                Family(
-                    tree_id=tree_id,
-                    status=link.status,
-                    partners=[FamilyPartner(person_id=anchor.id), FamilyPartner(person_id=new.id)],
+            sources = {c: kin.sole_parent_family(c, anchor.id) for c in link.also_parent_of}
+            if None in sources.values():
+                raise _unprocessable(
+                    "Only children with no other parent recorded can be the new partner's too"
                 )
+            couple = Family(
+                tree_id=tree_id,
+                status=link.status,
+                partners=[FamilyPartner(person_id=anchor.id), FamilyPartner(person_id=new.id)],
+                children=[],
             )
+            db.add(couple)
+            for child_id, source_id in sources.items():
+                assert source_id is not None
+                await move_child(db, child_id, source_id, couple)
 
         case "parent":
             births = kin.birth_families(anchor.id)

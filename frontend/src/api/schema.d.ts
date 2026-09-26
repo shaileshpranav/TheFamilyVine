@@ -287,6 +287,30 @@ export interface paths {
         patch: operations["update_person_api_trees__tree_id__people__person_id__patch"];
         trace?: never;
     };
+    "/api/trees/{tree_id}/people/{person_id}/parents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Parent
+         * @description Record a step-parent as one of this person's parents.
+         *
+         *     This fixes the common mix-up of adding someone's other parent as their parent's partner.
+         *     The person moves out of the family where that partner raises them alone and into the
+         *     couple's family, keeping how they're related (biological, adopted…).
+         */
+        post: operations["add_parent_api_trees__tree_id__people__person_id__parents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/trees/{tree_id}/people/{person_id}/linked-user": {
         parameters: {
             query?: never;
@@ -385,6 +409,23 @@ export interface paths {
         };
         /** List Places */
         get: operations["list_places_api_trees__tree_id__places_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tree Graph */
+        get: operations["tree_graph_api_trees__tree_id__graph_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -532,6 +573,56 @@ export interface components {
             /** Short */
             readonly short: string;
         };
+        /** GraphChild */
+        GraphChild: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            relation: components["schemas"]["ChildRelation"];
+        };
+        /**
+         * GraphFamily
+         * @description A couple (or single parent) and their children, as drawn on the canvas.
+         */
+        GraphFamily: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            status: components["schemas"]["PartnerStatus"];
+            /** Partner Ids */
+            partner_ids: string[];
+            /** Children */
+            children: components["schemas"]["GraphChild"][];
+            marriage: components["schemas"]["FuzzyDateOut"] | null;
+        };
+        /**
+         * GraphPerson
+         * @description What the tree canvas needs to draw one person.
+         */
+        GraphPerson: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name: string;
+            /** Given Names */
+            given_names: string;
+            /** Surname */
+            surname: string;
+            sex: components["schemas"]["Sex"];
+            /** Is Living */
+            is_living: boolean;
+            /** Linked User Id */
+            linked_user_id: string | null;
+            birth: components["schemas"]["VitalOut"] | null;
+            death: components["schemas"]["VitalOut"] | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -596,6 +687,14 @@ export interface components {
             person_name: string | null;
             /** Usable */
             usable: boolean;
+        };
+        /** LinkParent */
+        LinkParent: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
         };
         /** LinkUser */
         LinkUser: {
@@ -814,6 +913,8 @@ export interface components {
             children: string[];
             /** Partners */
             partners: string[];
+            /** Only Parent Of */
+            only_parent_of: string[];
             /** Relatives */
             relatives: components["schemas"]["RelativeOut"][];
             /** Timeline */
@@ -1001,6 +1102,11 @@ export interface components {
             via_person_id?: string | null;
             /** @default together */
             status?: components["schemas"]["PartnerStatus"];
+            /**
+             * Also Parent Of
+             * @default []
+             */
+            also_parent_of?: string[];
         };
         /** RelativeOut */
         RelativeOut: {
@@ -1025,6 +1131,11 @@ export interface components {
              * @default false
              */
             can_edit_family: boolean;
+            /**
+             * Can Make Parent
+             * @default false
+             */
+            can_make_parent: boolean;
         };
         /**
          * Role
@@ -1199,6 +1310,13 @@ export interface components {
             access: components["schemas"]["MyAccessOut"];
             /** Person Count */
             person_count: number;
+        };
+        /** TreeGraphOut */
+        TreeGraphOut: {
+            /** People */
+            people: components["schemas"]["GraphPerson"][];
+            /** Families */
+            families: components["schemas"]["GraphFamily"][];
         };
         /** TreeListItem */
         TreeListItem: {
@@ -2138,6 +2256,42 @@ export interface operations {
             };
         };
     };
+    add_parent_api_trees__tree_id__people__person_id__parents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkParent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     link_user_api_trees__tree_id__people__person_id__linked_user_put: {
         parameters: {
             query?: never;
@@ -2368,6 +2522,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaceOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tree_graph_api_trees__tree_id__graph_get: {
+        parameters: {
+            query?: {
+                /** @description Only this branch */
+                subtree_id?: string | null;
+            };
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreeGraphOut"];
                 };
             };
             /** @description Validation Error */

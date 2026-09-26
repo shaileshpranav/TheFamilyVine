@@ -133,6 +133,81 @@ async def test_relatives_are_grouped_in_order(api, family):
     assert order == ["parent", "parent", "partner", "sibling", "sibling", "child"]
 
 
+# ---- partners who are also parents -------------------------------------------------------
+
+
+async def solo_parent(client, family):
+    """Someone raising a child alone on the tree. Returns (parent, child)."""
+    family["solo"] = (await client.post(base(family), {"given_names": "Solo"})).json()["id"]
+    child = (await add(client, family, "Child", "child", "solo")).json()["id"]
+    return family["solo"], child
+
+
+async def families_of(client, family, child):
+    graph = (await client.get(f"/api/trees/{family['tree']}/graph")).json()
+    return [f for f in graph["families"] if child in [c["person_id"] for c in f["children"]]]
+
+
+async def test_new_partner_can_be_the_other_parent(api, family):
+    owner = api.as_(OWNER)
+    solo, child = await solo_parent(owner, family)
+    assert (await owner.get(f"{base(family)}/{solo}")).json()["only_parent_of"] == [child]
+
+    r = await add(owner, family, "Partner", "partner", "solo", also_parent_of=[child])
+    assert r.status_code == 201, r.text
+    partner = r.json()["id"]
+    assert r.json()["children"] == [child]
+    assert (await relatives(owner, family, None, child))[partner]["relation"] == "parent"
+    # The child moved into the couple, and the one-parent family is gone.
+    [only] = await families_of(owner, family, child)
+    assert set(only["partner_ids"]) == {solo, partner}
+    assert (await owner.get(f"{base(family)}/{solo}")).json()["only_parent_of"] == []
+
+
+async def test_only_children_without_another_parent_can_be_shared(api, family):
+    owner = api.as_(OWNER)
+    r = await add(owner, family, "New", "partner", "dad", also_parent_of=[family["kid"]])
+    assert r.status_code == 422
+    assert "no other parent recorded" in r.json()["detail"]
+
+
+async def test_step_parent_can_be_made_a_parent(api, family):
+    # The usual mix-up: the other parent was added as the parent's partner.
+    owner = api.as_(OWNER)
+    solo, child = await solo_parent(owner, family)
+    partner = (await add(owner, family, "Partner", "partner", "solo")).json()["id"]
+    step = (await relatives(owner, family, None, child))[partner]
+    assert step["relation"] == "step_parent" and step["can_make_parent"]
+    assert (await relatives(owner, family, None, partner))[child]["can_make_parent"]
+
+    r = await owner.post(f"{base(family)}/{child}/parents", {"person_id": partner})
+    assert r.status_code == 200, r.text
+    assert set(r.json()["parents"]) == {solo, partner}
+    [only] = await families_of(owner, family, child)
+    assert set(only["partner_ids"]) == {solo, partner}
+
+    r = await owner.post(f"{base(family)}/{child}/parents", {"person_id": partner})
+    assert r.status_code == 422
+
+
+async def test_making_a_parent_needs_a_lone_parent_and_edit_rights(api, family):
+    owner = api.as_(OWNER)
+    # Kid already has two parents, so a step-dad can't become a third.
+    r = await add(owner, family, "Stepdad", "step_parent", "kid", via_person_id=family["mum"])
+    stepdad = r.json()["id"]
+    assert not (await relatives(owner, family, "kid"))[stepdad]["can_make_parent"]
+    r = await owner.post(f"{base(family)}/{family['kid']}/parents", {"person_id": stepdad})
+    assert r.status_code == 422
+
+    # Contributors can't rearrange living people's families.
+    _solo, child = await solo_parent(owner, family)
+    partner = (await add(owner, family, "Partner", "partner", "solo")).json()["id"]
+    c = await join(api, family["tree"], "c@example.com", "contributor")
+    assert not (await relatives(c, family, None, child))[partner]["can_make_parent"]
+    r = await c.post(f"{base(family)}/{child}/parents", {"person_id": partner})
+    assert r.status_code == 403
+
+
 # ---- profile details ---------------------------------------------------------------------
 
 

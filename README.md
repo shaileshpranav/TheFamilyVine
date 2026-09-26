@@ -35,6 +35,7 @@ Add `?preview` to any URL, for example http://localhost:5173/trees/hollis?previe
 | Task | Command |
 |---|---|
 | Backend tests | `cd backend && uv run pytest` |
+| Web unit tests (tree layout) | `cd frontend && npm test` |
 | Lint / format (Python) | `cd backend && uv run ruff check . && uv run ruff format .` |
 | New migration after model changes | `cd backend && uv run alembic revision --autogenerate -m "..."` then `uv run alembic upgrade head` |
 | Regenerate typed API client after API changes | `cd frontend && npm run gen:api` |
@@ -51,14 +52,14 @@ backend/
     subtrees.py      family-graph walks that resolve branch membership
     relations.py     "add parent/child/partner" family wiring
     models/          SQLAlchemy models
-    routers/         me, trees (+members), invites, subtrees, people
+    routers/         me, trees (+members), invites, subtrees, people, events, graph
   migrations/        Alembic
   tests/             pytest (runs on in-memory SQLite, no Docker needed)
 frontend/
   src/api/           generated OpenAPI types, client, react-query hooks
   src/pages/         screens
-  src/components/    shared UI (app shell, cards, form pieces)
-  src/lib/           small helpers (formatting)
+  src/components/    shared UI (app shell, cards, form pieces); tree/ holds the canvas pieces
+  src/lib/           helpers (formatting, kinship labels) and the tree layout
   src/dev/           preview-mode sample data and fake API (development only)
   src/index.css      design tokens and component styles
 docker-compose.yml   Postgres + SuperTokens core

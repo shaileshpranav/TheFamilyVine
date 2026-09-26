@@ -6,10 +6,11 @@ from sqlalchemy import or_, select
 
 from app.deps import DB, Access, forbidden, get_visible_person, not_found
 from app.kinship import RELATION_ORDER, Kin
-from app.models import Event, EventType, Membership, Person
+from app.models import Event, EventType, Family, Membership, Person
 from app.permissions import TreeAccess
-from app.relations import attach_relative
+from app.relations import attach_relative, move_child
 from app.schemas import (
+    LinkParent,
     LinkUser,
     PersonCreate,
     PersonDetailOut,
@@ -32,15 +33,33 @@ async def _detail(db: DB, access: TreeAccess, person: Person) -> PersonDetailOut
     def visible(pid: uuid.UUID) -> bool:
         return pid in people and access.can_view_person(people[pid])
 
+    def can_edit_couple(family_id: uuid.UUID) -> bool:
+        return access.can_edit_family(
+            [people[x] for x in kin.families[family_id].partners if x in people]
+        )
+
     relatives: list[RelativeOut] = []
     for rel in kin.relatives(person.id):
         if not visible(rel.person_id):
             continue
-        can_edit_family = False
+        can_edit_family = can_make_parent = False
         if rel.relation == "partner" and rel.family_id is not None:
-            couple = [people[x] for x in kin.families[rel.family_id].partners if x in people]
-            can_edit_family = access.can_edit_family(couple)
-        relatives.append(RelativeOut(**dataclasses.asdict(rel), can_edit_family=can_edit_family))
+            can_edit_family = can_edit_couple(rel.family_id)
+        if rel.relation in ("step_parent", "step_child"):
+            child, step = (
+                (person.id, rel.person_id)
+                if rel.relation == "step_parent"
+                else (rel.person_id, person.id)
+            )
+            joinable = kin.joinable_couple(child, step)
+            can_make_parent = joinable is not None and can_edit_couple(joinable[1])
+        relatives.append(
+            RelativeOut(
+                **dataclasses.asdict(rel),
+                can_edit_family=can_edit_family,
+                can_make_parent=can_make_parent,
+            )
+        )
 
     vitals = await load_vitals(db, access.tree_id, [person.id, *(r.person_id for r in relatives)])
     relatives.sort(
@@ -62,6 +81,14 @@ async def _detail(db: DB, access: TreeAccess, person: Person) -> PersonDetailOut
         parents=sorted((p for p in kin.parents(person.id) if visible(p)), key=str),
         children=sorted((c for c in kin.children(person.id) if visible(c)), key=str),
         partners=sorted((p for p, _f, _s in kin.partners(person.id) if visible(p)), key=str),
+        only_parent_of=sorted(
+            (
+                c
+                for c in kin.children(person.id)
+                if visible(c) and kin.sole_parent_family(c, person.id) is not None
+            ),
+            key=str,
+        ),
         relatives=relatives,
         timeline=await build_timeline(db, kin, person, people, access),
     )
@@ -147,6 +174,38 @@ async def create_person(tree_id: uuid.UUID, body: PersonCreate, access: Access, 
 @router.get("/{person_id}", response_model=PersonDetailOut)
 async def get_person(tree_id: uuid.UUID, person_id: uuid.UUID, access: Access, db: DB):
     return await _detail(db, access, await get_visible_person(db, access, person_id))
+
+
+@router.post("/{person_id}/parents", response_model=PersonDetailOut)
+async def add_parent(
+    tree_id: uuid.UUID, person_id: uuid.UUID, body: LinkParent, access: Access, db: DB
+):
+    """Record a step-parent as one of this person's parents.
+
+    This fixes the common mix-up of adding someone's other parent as their parent's partner.
+    The person moves out of the family where that partner raises them alone and into the
+    couple's family, keeping how they're related (biological, adopted…).
+    """
+    child = await get_visible_person(db, access, person_id)
+    step_parent = await get_visible_person(db, access, body.person_id)
+    kin = await Kin.load(db, tree_id)
+    joinable = kin.joinable_couple(child.id, step_parent.id)
+    if joinable is None:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "Only the partner of this person's only recorded parent can be made a parent",
+        )
+    source_id, couple_id = joinable
+    couple = await db.scalars(select(Person).where(Person.id.in_(kin.families[couple_id].partners)))
+    if not access.can_edit_family(list(couple)):
+        raise forbidden()
+    await move_child(db, child.id, source_id, await db.get_one(Family, couple_id))
+    await db.commit()
+
+    # Reload access so sub-tree membership reflects the new relationship.
+    fresh = await TreeAccess.load(db, access.user, tree_id)
+    assert fresh is not None
+    return await _detail(db, fresh, child)
 
 
 @router.patch("/{person_id}", response_model=PersonDetailOut)
