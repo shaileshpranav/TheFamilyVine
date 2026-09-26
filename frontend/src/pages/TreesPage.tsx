@@ -1,24 +1,19 @@
 import { ArrowRight, Plus } from '@phosphor-icons/react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
-import { api, unwrap } from '../api/client'
-import { keys, useMe, useTrees } from '../api/hooks'
-import { Empty, ErrorText, Field, Loading, PageHeader, RoleBadge } from '../components/ui'
+import { Link, Navigate, useSearchParams } from 'react-router'
+import { useMe, useTrees } from '../api/hooks'
+import { Empty, ErrorText, Loading, PageHeader, RoleBadge } from '../components/ui'
 import { staggerIndex } from '../lib/format'
+import { photoUrl } from '../lib/photos'
 import { treeLink } from '../lib/preferences'
 
 export default function TreesPage() {
   const { data: me } = useMe()
   const { data: trees, isLoading, error } = useTrees()
-  const [params, setParams] = useSearchParams()
-  const [creating, setCreating] = useState(params.has('new'))
+  const [params] = useSearchParams()
   const firstName = me?.display_name?.split(/\s+/)[0]
 
-  function stopCreating() {
-    setCreating(false)
-    if (params.has('new')) setParams({}, { replace: true })
-  }
+  // Older "start a new tree" links (/?new=1) go to the guided set-up.
+  if (params.has('new')) return <Navigate to="/plant" replace />
 
   return (
     <>
@@ -27,15 +22,14 @@ export default function TreesPage() {
         title="Your family trees"
         lede="Open a tree to see the people in it, or start a new one."
         actions={
-          !creating && (
-            <button className="btn" onClick={() => setCreating(true)}>
+          !!trees?.length && (
+            <Link to="/plant" className="btn">
               <Plus size={16} /> Start a new tree
-            </button>
+            </Link>
           )
         }
       />
 
-      {creating && <CreateTree onDone={stopCreating} />}
       <ErrorText error={error} />
       {isLoading ? (
         <Loading />
@@ -44,6 +38,7 @@ export default function TreesPage() {
           {trees.map((t, i) => (
             <li key={t.id} style={staggerIndex(i)}>
               <Link to={treeLink(t.id, me?.preferences)} className="card card-link" style={{ height: '100%' }}>
+                {t.cover_photo_id && <img className="card-cover" src={photoUrl(t.id, t.cover_photo_id)!} alt="" />}
                 <div className="actions" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
                   <h2 className="card-title">{t.name}</h2>
                   <RoleBadge role={t.highest_role} />
@@ -61,76 +56,17 @@ export default function TreesPage() {
           ))}
         </ul>
       ) : (
-        !creating && (
-          <Empty
-            title="No trees yet"
-            action={
-              <button className="btn" onClick={() => setCreating(true)}>
-                <Plus size={16} /> Start a new tree
-              </button>
-            }
-          >
-            Start a tree of your own, or open an invite link a relative sent you.
-          </Empty>
-        )
+        <Empty
+          title="No trees yet"
+          action={
+            <Link to="/plant" className="btn">
+              <Plus size={16} /> Plant your family tree
+            </Link>
+          }
+        >
+          Start one with yourself, a step at a time, or open an invite link a relative sent you.
+        </Empty>
       )}
     </>
-  )
-}
-
-function CreateTree({ onDone }: { onDone: () => void }) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const qc = useQueryClient()
-  const navigate = useNavigate()
-  const create = useMutation({
-    mutationFn: () => unwrap(api.POST('/api/trees', { body: { name, description } })),
-    onSuccess: (tree) => {
-      qc.invalidateQueries({ queryKey: keys.trees })
-      navigate(`/trees/${tree.id}`)
-    },
-  })
-
-  return (
-    <form
-      className="card form page-enter"
-      style={{ marginBottom: 32 }}
-      onSubmit={(e) => {
-        e.preventDefault()
-        create.mutate()
-      }}
-    >
-      <div className="form-head">
-        <h2 className="card-title">Start a new tree</h2>
-        <p className="muted small">You’ll be its owner. You can invite relatives once it exists.</p>
-      </div>
-      <div className="grid-2">
-        <Field label="Name">
-          <input
-            autoFocus
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="The Hollis Family"
-          />
-        </Field>
-        <Field label="Description" hint="Optional">
-          <input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Four generations, from Leeds to Portland"
-          />
-        </Field>
-      </div>
-      <ErrorText error={create.error} />
-      <div className="actions">
-        <button className="btn" disabled={create.isPending}>
-          Create tree
-        </button>
-        <button type="button" className="btn btn-ghost" onClick={onDone}>
-          Cancel
-        </button>
-      </div>
-    </form>
   )
 }

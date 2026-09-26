@@ -109,3 +109,16 @@ grep -v exclude_from_hc docker-compose.prod.yml > /tmp/prod.yml
 POSTGRES_PASSWORD=local PUBLIC_URL=http://localhost:8081 WEB_PORT=8081 \
   docker compose -p thefamilyvine-prod -f /tmp/prod.yml --project-directory . up --build
 ```
+
+## Data to back up
+
+Two Docker volumes hold everything the family adds:
+
+- `pgdata`: the database (people, relationships, events, health conditions).
+- `media`: uploaded photos, at `/data/media` in the backend container. Photos are
+  resized on upload and only served through the API, which checks who may see them.
+
+Back both up together; a database restored without its photos shows empty frames.
+Uploads can be up to 15 MB (nginx allows 20 MB so the API can refuse larger files
+with a clear message).
+

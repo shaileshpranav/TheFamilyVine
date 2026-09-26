@@ -3,6 +3,7 @@ import { capitalise, type Kin } from '../../lib/relationship'
 import type { GraphPerson } from '../../lib/treeLayout'
 import PersonPicker from '../PersonPicker'
 import { Avatar, Label } from '../ui'
+import { photoUrl } from '../../lib/photos'
 
 export interface RelatePick {
   from: string | null
@@ -11,6 +12,7 @@ export interface RelatePick {
 
 /** "How are we related?": pick two people to see what one is to the other, and the line between. */
 export default function RelatePanel({
+  treeId,
   kin,
   people,
   meId,
@@ -19,6 +21,7 @@ export default function RelatePanel({
   onShow,
   onClose,
 }: {
+  treeId: string
   kin: Kin | null
   people: GraphPerson[]
   meId: string | null
@@ -57,6 +60,7 @@ export default function RelatePanel({
         <div className="field">
           <span className="field-label">From</span>
           <PersonPicker
+            treeId={treeId}
             people={people}
             value={from}
             onChange={(id) => onPick({ from: id, to })}
@@ -75,6 +79,7 @@ export default function RelatePanel({
         <div className="field">
           <span className="field-label">To</span>
           <PersonPicker
+            treeId={treeId}
             people={people}
             value={to}
             onChange={(id) => onPick({ from, to: id })}
@@ -103,6 +108,7 @@ export default function RelatePanel({
                   size="sm"
                   me={step.id === meId}
                   deceased={byId.get(step.id)?.is_living === false}
+                  photo={photoUrl(treeId, byId.get(step.id)?.photo_id)}
                 />
                 <span className="grow">
                   <span className="rel-name">{name(step.id)}</span>

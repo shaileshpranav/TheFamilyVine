@@ -5,6 +5,7 @@ import { useInvalidateTree } from '../api/hooks'
 import { lifespan } from '../lib/dates'
 import { type PartnerStatus, RELATIVE_GROUPS, STATUS_LABEL } from '../lib/genealogy'
 import { Avatar, ErrorText, Label, Tag } from './ui'
+import { photoUrl } from '../lib/photos'
 
 /** Parents, step-parents, partners, siblings, children… each linked to their own page. */
 export default function FamilySection({
@@ -94,7 +95,13 @@ function RelativeRow({
   return (
     <li className="relative-row">
       <Link to={`../${r.person_id}`} relative="path" className="rel-link grow">
-        <Avatar name={name} size="sm" me={r.person_id === meId} deceased={p ? !p.is_living : false} />
+        <Avatar
+          name={name}
+          size="sm"
+          me={r.person_id === meId}
+          deceased={p ? !p.is_living : false}
+          photo={photoUrl(treeId, p?.photo_id)}
+        />
         <span className="grow">
           <span className="rel-name">
             <span>{name}</span>

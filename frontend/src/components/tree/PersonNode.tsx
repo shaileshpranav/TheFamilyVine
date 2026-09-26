@@ -7,6 +7,8 @@ import type { GraphPerson } from '../../lib/treeLayout'
 
 export type PersonNodeData = {
   person: GraphPerson
+  /** Their profile photo's URL, if they have one. */
+  photo: string | null
   isMe: boolean
   selected: boolean
   /** While a line between two people is shown: on it, or off it and dimmed. */
@@ -19,7 +21,7 @@ export type PersonNodeType = Node<PersonNodeData, 'person'>
 
 /** A person on the canvas: a tile with their initials, then their name and years. */
 function PersonNode({ data }: NodeProps<PersonNodeType>) {
-  const { person, isMe, selected, path, canAdd, onSelect, onAdd } = data
+  const { person, photo, isMe, selected, path, canAdd, onSelect, onAdd } = data
   const years = lifespan(person.birth, person.death)
   const cls = [
     'tree-node',
@@ -27,6 +29,7 @@ function PersonNode({ data }: NodeProps<PersonNodeType>) {
     !person.is_living && 'deceased',
     selected && 'selected',
     path && `path-${path}`,
+    photo && 'has-photo',
   ]
     .filter(Boolean)
     .join(' ')
@@ -40,7 +43,7 @@ function PersonNode({ data }: NodeProps<PersonNodeType>) {
           aria-label={`${person.display_name}${years ? `, ${years}` : ''}${isMe ? ' (you)' : ''}`}
           onClick={() => onSelect(person.id)}
         >
-          {initialsOf(person.display_name)}
+          {photo ? <img src={photo} alt="" loading="lazy" draggable={false} /> : initialsOf(person.display_name)}
         </button>
         {selected && canAdd && (
           <button

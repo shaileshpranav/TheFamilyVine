@@ -65,6 +65,11 @@ class Person(TimestampMixin, Base):
         JSON, default=list, server_default=text("'[]'")
     )
 
+    # Their profile picture, one of their gallery's photos.
+    photo_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("photos.id", ondelete="SET NULL", use_alter=True)
+    )
+
     # The account that *is* this person ("this is me").
     linked_user_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")

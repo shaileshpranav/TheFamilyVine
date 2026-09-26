@@ -32,6 +32,7 @@ import {
   pathSegments,
   treeLines,
 } from '../lib/treeLayout'
+import { photoUrl } from '../lib/photos'
 import { relationToYou } from '../lib/relationship'
 
 const nodeTypes = { person: PersonNode, lines: LinesNode }
@@ -309,6 +310,7 @@ function Canvas({
             position: layout.positions.get(p.id)!,
             data: {
               person: p,
+              photo: photoUrl(tree.id, p.photo_id),
               isMe: p.id === meId,
               selected: p.id === shownSelected,
               path: path ? (path.ids.includes(p.id) ? 'on' : 'off') : null,
@@ -322,7 +324,7 @@ function Canvas({
           }),
         ),
     ],
-    [graph, layout, lines, shownSelected, interactive, shownHover, onPath, path, meId, tree.access.can_create_people, selectOnCanvas, addRelative],
+    [graph, layout, lines, shownSelected, interactive, shownHover, onPath, path, meId, tree.id, tree.access.can_create_people, selectOnCanvas, addRelative],
   )
 
   const allLabel = tree.access.tree_role ? 'Whole tree' : 'All your branches'
@@ -451,6 +453,7 @@ function Canvas({
 
       {relate ? (
         <RelatePanel
+          treeId={tree.id}
           kin={kin}
           people={everyone}
           meId={meId}
