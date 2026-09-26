@@ -60,15 +60,17 @@ export function usePeople(treeId: string, q = '') {
   })
 }
 
-export function usePerson(treeId: string, personId: string) {
+/** A person's full profile. Pass `null` to wait until someone is chosen. */
+export function usePerson(treeId: string, personId: string | null) {
   return useQuery({
-    queryKey: keys.person(treeId, personId),
+    queryKey: keys.person(treeId, personId ?? ''),
     queryFn: () =>
       unwrap(
         api.GET('/api/trees/{tree_id}/people/{person_id}', {
-          params: { path: { tree_id: treeId, person_id: personId } },
+          params: { path: { tree_id: treeId, person_id: personId! } },
         }),
       ),
+    enabled: personId !== null,
   })
 }
 

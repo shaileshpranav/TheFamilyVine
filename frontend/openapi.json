@@ -1239,14 +1239,14 @@
         }
       }
     },
-    "/api/trees/{tree_id}/people/{person_id}/parents": {
+    "/api/trees/{tree_id}/people/{person_id}/relatives": {
       "post": {
         "tags": [
           "people"
         ],
-        "summary": "Add Parent",
-        "description": "Record a step-parent as one of this person's parents.\n\nThis fixes the common mix-up of adding someone's other parent as their parent's partner.\nThe person moves out of the family where that partner raises them alone and into the\ncouple's family, keeping how they're related (biological, adopted\u2026).",
-        "operationId": "add_parent_api_trees__tree_id__people__person_id__parents_post",
+        "summary": "Connect Relative",
+        "description": "Connect this person, already on the tree, to `body.person_id`.\n\nIt works exactly like adding someone new with `relative`: {\"person_id\": X, \"relation\":\n\"child\"} records them as X's child. That also covers turning a step-parent into a parent.",
+        "operationId": "connect_relative_api_trees__tree_id__people__person_id__relatives_post",
         "parameters": [
           {
             "name": "tree_id",
@@ -1274,11 +1274,75 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LinkParent"
+                "$ref": "#/components/schemas/RelativeLink"
               }
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/people/{person_id}/relatives/{relative_id}": {
+      "delete": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Disconnect Relative",
+        "description": "Remove a direct link: a parent, a child, a partner with no children together, or a\nsibling recorded without parents. Nobody is deleted.",
+        "operationId": "disconnect_relative_api_trees__tree_id__people__person_id__relatives__relative_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          },
+          {
+            "name": "relative_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Relative Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2651,20 +2715,6 @@
         ],
         "title": "InvitePreview"
       },
-      "LinkParent": {
-        "properties": {
-          "person_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Person Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "person_id"
-        ],
-        "title": "LinkParent"
-      },
       "LinkUser": {
         "properties": {
           "user_id": {
@@ -3741,7 +3791,8 @@
           "person_id",
           "relation"
         ],
-        "title": "RelativeLink"
+        "title": "RelativeLink",
+        "description": "How a person, new or already on the tree, is connected to `person_id`."
       },
       "RelativeOut": {
         "properties": {
@@ -3817,6 +3868,11 @@
             "type": "boolean",
             "title": "Can Make Parent",
             "default": false
+          },
+          "can_unlink": {
+            "type": "boolean",
+            "title": "Can Unlink",
+            "default": false
           }
         },
         "type": "object",
@@ -3828,7 +3884,8 @@
           "status",
           "via_person_id",
           "can_edit_family",
-          "can_make_parent"
+          "can_make_parent",
+          "can_unlink"
         ],
         "title": "RelativeOut"
       },

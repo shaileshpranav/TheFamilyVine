@@ -160,6 +160,43 @@ class Kin:
         """Families this person was born or adopted into (not step links)."""
         return [f for f in self.child_in.get(pid, ()) if self.families[f].children[pid] != STEP]
 
+    def descendants(self, pid: PersonId) -> set[PersonId]:
+        """Everyone below this person: children, their children, and so on."""
+        out: set[PersonId] = set()
+        stack = [pid]
+        while stack:
+            for fid in self.partner_in.get(stack.pop(), ()):
+                for child in self.families[fid].children:
+                    if child not in out:
+                        out.add(child)
+                        stack.append(child)
+        return out
+
+    def couples(self, a: PersonId, b: PersonId) -> list[FamilyId]:
+        """Families in which `a` and `b` are partners."""
+        return [f for f in self.partner_in.get(a, ()) if b in self.families[f].partners]
+
+    def removable_link(
+        self, a: PersonId, b: PersonId
+    ) -> Literal["parent", "child", "partner", "sibling"] | None:
+        """How `b` is directly linked to `a`, if that link can be removed on its own.
+
+        Half-siblings and step relatives come from other links, siblings who share parents
+        are linked through those parents, and a couple with children together stays their
+        parents, so none of those can be.
+        """
+        if b in self.blood_parents(a):
+            return "parent"
+        if a in self.blood_parents(b):
+            return "child"
+        couples = self.couples(a, b)
+        if couples:
+            return None if any(self.families[f].children for f in couples) else "partner"
+        shared = set(self.birth_families(a)) & set(self.birth_families(b))
+        if any(not self.families[f].partners for f in shared):
+            return "sibling"
+        return None
+
     def sole_parent_family(self, child: PersonId, parent: PersonId) -> FamilyId | None:
         """The family in which `parent` is `child`'s only recorded parent, if there is one."""
         for fid in self.birth_families(child):

@@ -130,7 +130,56 @@ function RelativeRow({
       )}
       <ErrorText error={setStatus.error} />
       <MakeParentButton treeId={treeId} person={person} relative={r} people={people} />
+      <UnlinkButton treeId={treeId} person={person} relative={r} people={people} />
     </li>
+  )
+}
+
+const UNLINK_AS: Record<string, string> = { parent: 'parent', child: 'child', sibling: 'sibling' }
+
+/** Removes a direct link (a parent, child, partner or sibling). Nobody is deleted. */
+function UnlinkButton({
+  treeId,
+  person,
+  relative: r,
+  people,
+}: {
+  treeId: string
+  person: PersonDetail
+  relative: RelativeOut
+  people: Map<string, Person>
+}) {
+  const invalidate = useInvalidateTree()
+  const remove = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.DELETE('/api/trees/{tree_id}/people/{person_id}/relatives/{relative_id}', {
+          params: { path: { tree_id: treeId, person_id: person.id, relative_id: r.person_id } },
+        }),
+      ),
+    onSuccess: () => invalidate(treeId),
+  })
+  if (!r.can_unlink) return null
+
+  const me = person.display_name
+  const them = people.get(r.person_id)?.display_name ?? 'Unknown'
+  const question =
+    r.relation === 'partner'
+      ? `Remove ${me} and ${them} as partners? Any events they share, such as a marriage, go too.`
+      : `Remove ${them} as ${me}’s ${UNLINK_AS[r.relation] ?? 'relative'}?`
+  return (
+    <>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        aria-label={r.relation === 'partner' ? `Remove ${them} as a partner` : `Remove ${them} as ${me}’s ${UNLINK_AS[r.relation]}`}
+        disabled={remove.isPending}
+        onClick={() => confirm(`${question} Nobody is deleted from the tree.`) && remove.mutate()}
+      >
+        Remove
+      </button>
+      <ErrorText error={remove.error} />
+    </>
   )
 }
 
@@ -156,9 +205,9 @@ export function MakeParentButton({
   const make = useMutation({
     mutationFn: () =>
       unwrap(
-        api.POST('/api/trees/{tree_id}/people/{person_id}/parents', {
+        api.POST('/api/trees/{tree_id}/people/{person_id}/relatives', {
           params: { path: { tree_id: treeId, person_id: childId } },
-          body: { person_id: parentId },
+          body: { person_id: parentId, relation: 'child' },
         }),
       ),
     onSuccess: () => invalidate(treeId),

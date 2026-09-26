@@ -1,3 +1,5 @@
+from sqlalchemy import text
+
 from tests.conftest import OWNER, join
 
 
@@ -171,6 +173,12 @@ async def test_only_children_without_another_parent_can_be_shared(api, family):
     assert "no other parent recorded" in r.json()["detail"]
 
 
+async def connect(client, family, person, relation, anchor, **extra):
+    """Connect `person`, already on the tree, to `anchor` as `relation`."""
+    body = {"person_id": anchor, "relation": relation, **extra}
+    return await client.post(f"{base(family)}/{person}/relatives", body)
+
+
 async def test_step_parent_can_be_made_a_parent(api, family):
     # The usual mix-up: the other parent was added as the parent's partner.
     owner = api.as_(OWNER)
@@ -180,32 +188,150 @@ async def test_step_parent_can_be_made_a_parent(api, family):
     assert step["relation"] == "step_parent" and step["can_make_parent"]
     assert (await relatives(owner, family, None, partner))[child]["can_make_parent"]
 
-    r = await owner.post(f"{base(family)}/{child}/parents", {"person_id": partner})
+    r = await connect(owner, family, child, "child", partner)
     assert r.status_code == 200, r.text
     assert set(r.json()["parents"]) == {solo, partner}
     [only] = await families_of(owner, family, child)
     assert set(only["partner_ids"]) == {solo, partner}
 
-    r = await owner.post(f"{base(family)}/{child}/parents", {"person_id": partner})
-    assert r.status_code == 422
+    r = await connect(owner, family, child, "child", partner)
+    assert r.status_code == 422 and "already recorded as a parent" in r.json()["detail"]
 
 
-async def test_making_a_parent_needs_a_lone_parent_and_edit_rights(api, family):
+async def test_a_third_parent_is_refused(api, family):
     owner = api.as_(OWNER)
-    # Kid already has two parents, so a step-dad can't become a third.
     r = await add(owner, family, "Stepdad", "step_parent", "kid", via_person_id=family["mum"])
     stepdad = r.json()["id"]
     assert not (await relatives(owner, family, "kid"))[stepdad]["can_make_parent"]
-    r = await owner.post(f"{base(family)}/{family['kid']}/parents", {"person_id": stepdad})
-    assert r.status_code == 422
+    r = await connect(owner, family, family["kid"], "child", stepdad)
+    assert r.status_code == 422 and "two parents" in r.json()["detail"]
 
-    # Contributors can't rearrange living people's families.
-    _solo, child = await solo_parent(owner, family)
-    partner = (await add(owner, family, "Partner", "partner", "solo")).json()["id"]
-    c = await join(api, family["tree"], "c@example.com", "contributor")
-    assert not (await relatives(c, family, None, child))[partner]["can_make_parent"]
-    r = await c.post(f"{base(family)}/{child}/parents", {"person_id": partner})
+
+# ---- connecting people already on the tree ----------------------------------------------
+
+
+async def loose(client, family, *names):
+    """People with no relatives yet."""
+    return [(await client.post(base(family), {"given_names": n})).json()["id"] for n in names]
+
+
+async def test_connect_existing_partners_with_a_child_from_either_side(api, family):
+    owner = api.as_(OWNER)
+    solo, child = await solo_parent(owner, family)
+    [other] = await loose(owner, family, "Other")
+    r = await connect(owner, family, solo, "partner", other, also_parent_of=[child])
+    assert r.status_code == 200, r.text
+    assert set((await owner.get(f"{base(family)}/{child}")).json()["parents"]) == {solo, other}
+    r = await connect(owner, family, solo, "partner", other)
+    assert r.status_code == 422 and "already partners" in r.json()["detail"]
+
+
+async def test_connect_existing_parent_joins_the_recorded_one(api, family):
+    owner = api.as_(OWNER)
+    solo, child = await solo_parent(owner, family)
+    [dad] = await loose(owner, family, "Dad")
+    r = await connect(owner, family, dad, "parent", child)
+    assert r.status_code == 200, r.text
+    [only] = await families_of(owner, family, child)
+    assert set(only["partner_ids"]) == {solo, dad}
+
+
+async def test_connect_existing_child_to_a_couple(api, family):
+    owner = api.as_(OWNER)
+    [orphan] = await loose(owner, family, "Orphan")
+    r = await connect(owner, family, orphan, "child", family["dad"])
+    assert r.status_code == 200, r.text
+    assert set(r.json()["parents"]) == {family["dad"], family["mum"]}
+    assert (await relatives(owner, family, "kid"))[orphan]["relation"] == "sibling"
+
+
+async def test_no_one_becomes_their_own_ancestor(api, family):
+    owner = api.as_(OWNER)
+    r = await connect(owner, family, family["kid"], "parent", family["grandpa"])
+    assert r.status_code == 422 and "own ancestor" in r.json()["detail"]
+    r = await connect(owner, family, family["grandpa"], "child", family["kid"])
+    assert r.status_code == 422 and "own ancestor" in r.json()["detail"]
+
+
+async def test_connect_existing_siblings(api, family):
+    owner = api.as_(OWNER)
+    a, b, c = await loose(owner, family, "A", "B", "C")
+    # Neither has parents: they share a parentless family, and a third joins them.
+    assert (await connect(owner, family, a, "sibling", b)).status_code == 200
+    assert (await connect(owner, family, c, "sibling", a)).status_code == 200
+    # Siblings recorded without parents join someone else's parents together.
+    r = await connect(owner, family, b, "sibling", family["kid"])
+    assert r.status_code == 200, r.text
+    for x in (a, b, c):
+        parents = (await owner.get(f"{base(family)}/{x}")).json()["parents"]
+        assert set(parents) == {family["dad"], family["mum"]}
+    # Different parents on both sides can't just be declared siblings.
+    r = await connect(owner, family, family["kid"], "sibling", family["uncle"])
+    assert r.status_code == 422 and "different parents" in r.json()["detail"]
+
+
+async def test_connecting_follows_the_rules_for_adding_relatives(api, family):
+    [loner] = await loose(api.as_(OWNER), family, "Loner")
+    personal = await join(api, family["tree"], "p@example.com", "personal")
+    r = await connect(personal, family, loner, "child", family["grandpa"])
     assert r.status_code == 403
+    contributor = await join(api, family["tree"], "c@example.com", "contributor")
+    r = await connect(contributor, family, loner, "child", family["grandpa"])
+    assert r.status_code == 200, r.text
+
+
+# ---- removing links ------------------------------------------------------------------------
+
+
+async def unlink(client, family, person, relative):
+    return await client.delete(f"{base(family)}/{person}/relatives/{relative}")
+
+
+async def test_removing_a_parent_keeps_the_other(api, family):
+    owner = api.as_(OWNER)
+    assert (await relatives(owner, family, "kid"))[family["dad"]]["can_unlink"]
+    r = await unlink(owner, family, family["kid"], family["dad"])
+    assert r.status_code == 200, r.text
+    assert r.json()["parents"] == [family["mum"]]
+    # Dad and Mum are still a couple, so Kid is now Dad's step-child.
+    rels = await relatives(owner, family, "dad")
+    assert rels[family["mum"]]["relation"] == "partner"
+    assert rels[family["kid"]]["relation"] == "step_child"
+
+
+async def test_removing_partners_and_siblings(api, family, engine):
+    owner = api.as_(OWNER)
+    # Dad and Mum have Kid together, so their partnership can't go on its own.
+    assert not (await relatives(owner, family, "dad"))[family["mum"]]["can_unlink"]
+    r = await unlink(owner, family, family["dad"], family["mum"])
+    assert r.status_code == 422 and "children together" in r.json()["detail"]
+
+    ex = (await add(owner, family, "Ex", "partner", "dad", status="divorced")).json()["id"]
+    assert (await unlink(owner, family, family["dad"], ex)).status_code == 200
+    assert ex not in await relatives(owner, family, "dad")
+
+    # Siblings through shared parents are separated through those parents instead.
+    assert not (await relatives(owner, family, "dad"))[family["uncle"]]["can_unlink"]
+    a, b = await loose(owner, family, "A", "B")
+    await connect(owner, family, a, "sibling", b)
+    assert (await unlink(owner, family, a, b)).status_code == 200
+    assert b not in await relatives(owner, family, None, a)
+    # Nothing is left behind: every family still links at least two people.
+    async with engine.connect() as conn:
+        lonely = await conn.scalar(
+            text(
+                "SELECT count(*) FROM families f WHERE"
+                " (SELECT count(*) FROM family_partners WHERE family_id = f.id)"
+                " + (SELECT count(*) FROM child_links WHERE family_id = f.id) < 2"
+            )
+        )
+    assert lonely == 0
+
+
+async def test_personal_members_cannot_remove_links(api, family):
+    personal = await join(api, family["tree"], "p@example.com", "personal")
+    assert not (await relatives(personal, family, "kid"))[family["dad"]]["can_unlink"]
+    assert (await unlink(personal, family, family["kid"], family["dad"])).status_code == 403
 
 
 # ---- profile details ---------------------------------------------------------------------
