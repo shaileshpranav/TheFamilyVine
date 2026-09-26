@@ -237,13 +237,19 @@ const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((
 /** The family in which `parent` is `child`'s only recorded parent. */
 const soleParentFamily = (child: string, parent: string) =>
   childIn(child).find((f) => sameSet(f.partners, [parent]))
+/** Can this link be removed on its own? (See Kin.removable_link.) */
+const removable = (id: string, r: SeedRelative) =>
+  r.relation === 'parent' ||
+  r.relation === 'child' ||
+  (r.relation === 'partner' && !FAMILIES.find((f) => f.id === r.family_id)?.children.length) ||
+  (r.relation === 'sibling' && childIn(id).some((f) => !f.partners.length && f.children.includes(r.person_id)))
 /** The couple a step-parent's child could join, making the step-parent a parent too. */
 const joinableCouple = (child: string, stepParent: string) =>
   parentsOf(child).includes(stepParent)
     ? undefined
     : partnersOf(stepParent).find((q) => soleParentFamily(child, q.id))?.family
 
-type SeedRelative = Omit<Relative, 'can_edit_family' | 'can_make_parent'>
+type SeedRelative = Omit<Relative, 'can_edit_family' | 'can_make_parent' | 'can_unlink'>
 
 function relativesOf(id: string): SeedRelative[] {
   const out: SeedRelative[] = []
@@ -418,7 +424,8 @@ export function buildDataset(role: Role): Dataset {
         return {
           ...r,
           can_edit_family: r.relation === 'partner' && !!r.family_id && canEditFamily(FAMILIES.find((f) => f.id === r.family_id)!),
-          can_make_parent: !!couple && canEditFamily(couple),
+          can_make_parent: !!couple && RANK[role] >= RANK.contributor,
+          can_unlink: removable(p.id, r) && RANK[role] >= RANK.contributor,
         }
       })
       return [

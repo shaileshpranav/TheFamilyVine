@@ -6,17 +6,17 @@ from sqlalchemy import or_, select
 
 from app.deps import DB, Access, forbidden, get_visible_person, not_found
 from app.kinship import RELATION_ORDER, Kin
-from app.models import Event, EventType, Family, Membership, Person
+from app.models import Event, EventType, Membership, Person
 from app.permissions import TreeAccess
-from app.relations import attach_relative, move_child
+from app.relations import attach_relative, detach_relative
 from app.schemas import (
-    LinkParent,
     LinkUser,
     PersonCreate,
     PersonDetailOut,
     PersonOut,
     PersonPermissions,
     PersonUpdate,
+    RelativeLink,
     RelativeOut,
 )
 from app.timeline import birth_sort_key, build_timeline, load_vitals, person_out
@@ -33,31 +33,29 @@ async def _detail(db: DB, access: TreeAccess, person: Person) -> PersonDetailOut
     def visible(pid: uuid.UUID) -> bool:
         return pid in people and access.can_view_person(people[pid])
 
-    def can_edit_couple(family_id: uuid.UUID) -> bool:
-        return access.can_edit_family(
-            [people[x] for x in kin.families[family_id].partners if x in people]
-        )
-
     relatives: list[RelativeOut] = []
     for rel in kin.relatives(person.id):
         if not visible(rel.person_id):
             continue
-        can_edit_family = can_make_parent = False
+        other = people[rel.person_id]
+        # Linking and unlinking follow the rules for adding a relative, for both of them.
+        can_link = access.can_attach_to(person) and access.can_attach_to(other)
+        can_edit_family = False
         if rel.relation == "partner" and rel.family_id is not None:
-            can_edit_family = can_edit_couple(rel.family_id)
+            couple = [people[x] for x in kin.families[rel.family_id].partners if x in people]
+            can_edit_family = access.can_edit_family(couple)
+        can_make_parent = False
         if rel.relation in ("step_parent", "step_child"):
             child, step = (
-                (person.id, rel.person_id)
-                if rel.relation == "step_parent"
-                else (rel.person_id, person.id)
+                (person.id, other.id) if rel.relation == "step_parent" else (other.id, person.id)
             )
-            joinable = kin.joinable_couple(child, step)
-            can_make_parent = joinable is not None and can_edit_couple(joinable[1])
+            can_make_parent = can_link and kin.joinable_couple(child, step) is not None
         relatives.append(
             RelativeOut(
                 **dataclasses.asdict(rel),
                 can_edit_family=can_edit_family,
                 can_make_parent=can_make_parent,
+                can_unlink=can_link and kin.removable_link(person.id, other.id) is not None,
             )
         )
 
@@ -176,36 +174,46 @@ async def get_person(tree_id: uuid.UUID, person_id: uuid.UUID, access: Access, d
     return await _detail(db, access, await get_visible_person(db, access, person_id))
 
 
-@router.post("/{person_id}/parents", response_model=PersonDetailOut)
-async def add_parent(
-    tree_id: uuid.UUID, person_id: uuid.UUID, body: LinkParent, access: Access, db: DB
+@router.post("/{person_id}/relatives", response_model=PersonDetailOut)
+async def connect_relative(
+    tree_id: uuid.UUID, person_id: uuid.UUID, body: RelativeLink, access: Access, db: DB
 ):
-    """Record a step-parent as one of this person's parents.
+    """Connect this person, already on the tree, to `body.person_id`.
 
-    This fixes the common mix-up of adding someone's other parent as their parent's partner.
-    The person moves out of the family where that partner raises them alone and into the
-    couple's family, keeping how they're related (biological, adopted…).
+    It works exactly like adding someone new with `relative`: {"person_id": X, "relation":
+    "child"} records them as X's child. That also covers turning a step-parent into a parent.
     """
-    child = await get_visible_person(db, access, person_id)
-    step_parent = await get_visible_person(db, access, body.person_id)
-    kin = await Kin.load(db, tree_id)
-    joinable = kin.joinable_couple(child.id, step_parent.id)
-    if joinable is None:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            "Only the partner of this person's only recorded parent can be made a parent",
-        )
-    source_id, couple_id = joinable
-    couple = await db.scalars(select(Person).where(Person.id.in_(kin.families[couple_id].partners)))
-    if not access.can_edit_family(list(couple)):
+    person = await get_visible_person(db, access, person_id)
+    anchor = await get_visible_person(db, access, body.person_id)
+    if body.via_person_id:
+        await get_visible_person(db, access, body.via_person_id)
+    if not (access.can_attach_to(person) and access.can_attach_to(anchor)):
         raise forbidden()
-    await move_child(db, child.id, source_id, await db.get_one(Family, couple_id))
+    await attach_relative(db, person, body, anchor)
     await db.commit()
 
     # Reload access so sub-tree membership reflects the new relationship.
     fresh = await TreeAccess.load(db, access.user, tree_id)
     assert fresh is not None
-    return await _detail(db, fresh, child)
+    return await _detail(db, fresh, person)
+
+
+@router.delete("/{person_id}/relatives/{relative_id}", response_model=PersonDetailOut)
+async def disconnect_relative(
+    tree_id: uuid.UUID, person_id: uuid.UUID, relative_id: uuid.UUID, access: Access, db: DB
+):
+    """Remove a direct link: a parent, a child, a partner with no children together, or a
+    sibling recorded without parents. Nobody is deleted."""
+    person = await get_visible_person(db, access, person_id)
+    relative = await get_visible_person(db, access, relative_id)
+    if not (access.can_attach_to(person) and access.can_attach_to(relative)):
+        raise forbidden()
+    await detach_relative(db, person, relative)
+    await db.commit()
+
+    fresh = await TreeAccess.load(db, access.user, tree_id)
+    assert fresh is not None
+    return await _detail(db, fresh, person)
 
 
 @router.patch("/{person_id}", response_model=PersonDetailOut)
