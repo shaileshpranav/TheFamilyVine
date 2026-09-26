@@ -50,6 +50,17 @@ function choicesFor(
   }
 }
 
+/** For a child with no parents recorded: their siblings, who get the same parents. */
+function siblingsNote(child: PersonDetail | undefined, name: (id: string) => string) {
+  if (!child || child.parents.length) return null
+  const siblings = child.relatives.filter((r) => r.relation === 'sibling').map((r) => name(r.person_id))
+  if (!siblings.length) return null
+  const list = siblings.length === 1 ? siblings[0] : `${siblings.slice(0, -1).join(', ')} and ${siblings.at(-1)}`
+  return siblings.length === 1
+    ? `${child.display_name}’s sibling ${list} gets the same parents.`
+    : `${child.display_name}’s siblings ${list} get the same parents.`
+}
+
 const CHOICE_LABEL: Partial<Record<NewRelation, string>> = {
   step_parent: 'Partner of',
   step_child: 'Child of',
@@ -162,7 +173,7 @@ export default function AddPersonForm({
   const candidates = (everyone ?? []).filter((p) => !taken.has(p.id))
   const name = (id: string) => names.get(id)?.display_name ?? 'Unknown'
   const full = relation === 'child' && (other?.parents.length ?? 0) >= 2
-  const note =
+  const notes = [
     !other || !anchor
       ? null
       : full
@@ -171,7 +182,10 @@ export default function AddPersonForm({
           ? `${anchor.display_name} becomes ${other.display_name}’s other parent, alongside ${name(other.parents[0])}.`
           : relation === 'parent' && anchor.parents.length === 1
             ? `${other.display_name} becomes ${anchor.display_name}’s other parent, alongside ${name(anchor.parents[0])}.`
-            : null
+            : null,
+    // Siblings recorded without parents share them, so they come along.
+    relation === 'child' ? siblingsNote(other, name) : relation === 'parent' ? siblingsNote(anchor, name) : null,
+  ].filter((n): n is string => !!n)
 
   const title = isMe
     ? 'Add yourself to the tree'
@@ -297,7 +311,11 @@ export default function AddPersonForm({
             </span>
           </div>
         )}
-        {note && <p className="field-hint grid-full">{note}</p>}
+        {notes.map((n) => (
+          <p key={n} className="field-hint grid-full">
+            {n}
+          </p>
+        ))}
       </div>
       <ErrorText error={save.error} />
       <div className="actions">
