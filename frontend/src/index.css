@@ -1113,7 +1113,8 @@ input[type='checkbox'] {
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-lg);
 }
-.empty svg {
+/* The illustration only, not icons inside the action button. */
+.empty > svg {
   margin-bottom: 14px;
 }
 .empty-title {
