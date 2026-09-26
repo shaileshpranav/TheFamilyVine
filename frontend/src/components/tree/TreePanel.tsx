@@ -1,4 +1,4 @@
-import { Crosshair, UserPlus, X } from '@phosphor-icons/react'
+import { Crosshair, Path, UserPlus, X } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import type { Tree } from '../../api/client'
 import { usePeople, usePerson } from '../../api/hooks'
@@ -21,6 +21,8 @@ export default function TreePanel({
   onSelect,
   onCentre,
   onAdded,
+  onRelate,
+  relationLabel,
 }: {
   tree: Tree
   personId: string
@@ -31,6 +33,10 @@ export default function TreePanel({
   onSelect: (id: string) => void
   onCentre: (id: string) => void
   onAdded: (id: string) => void
+  /** Open "How are we related?" with this person. */
+  onRelate: (id: string) => void
+  /** What they are to the viewer: "Your first cousin". */
+  relationLabel: string | null
 }) {
   const { data: person, error, isLoading } = usePerson(tree.id, personId)
   const { data: everyone } = usePeople(tree.id)
@@ -52,6 +58,9 @@ export default function TreePanel({
             <div className="grow">
               <h2 className="tree-panel-name">{person.display_name}</h2>
               {person.native_name && <p className="small">{person.native_name}</p>}
+              {relationLabel && person.id !== tree.access.my_person_id && (
+                <p className="relation-to-you">{relationLabel}</p>
+              )}
               <div className="person-meta" style={{ marginTop: 8 }}>
                 <LivingBadge living={person.is_living} />
                 {person.id === tree.access.my_person_id && <YouTag />}
@@ -86,6 +95,9 @@ export default function TreePanel({
                     <UserPlus size={15} /> Add a relative
                   </button>
                 )}
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRelate(person.id)}>
+                  <Path size={15} /> How are we related?
+                </button>
                 <button
                   type="button"
                   className="btn btn-ghost btn-sm btn-icon push-right"

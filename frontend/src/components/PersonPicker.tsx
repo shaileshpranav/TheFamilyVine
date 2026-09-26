@@ -4,15 +4,21 @@ import type { Person } from '../api/client'
 import { lifespan } from '../lib/dates'
 import { Avatar } from './ui'
 
+type Pickable = Pick<Person, 'id' | 'display_name' | 'is_living' | 'birth' | 'death'>
+
 /** Choose someone already on the tree, by name. */
 export default function PersonPicker({
   people,
   value,
   onChange,
+  label = 'Search the people on this tree',
+  autoFocus = true,
 }: {
-  people: Person[]
+  people: Pickable[]
   value: string | null
   onChange: (id: string | null) => void
+  label?: string
+  autoFocus?: boolean
 }) {
   const [q, setQ] = useState('')
   const listId = useId()
@@ -41,9 +47,9 @@ export default function PersonPicker({
         <MagnifyingGlass size={16} />
         <input
           type="search"
-          autoFocus
+          autoFocus={autoFocus}
           placeholder="Search by name"
-          aria-label="Search the people on this tree"
+          aria-label={label}
           aria-controls={listId}
           value={q}
           onChange={(e) => setQ(e.target.value)}

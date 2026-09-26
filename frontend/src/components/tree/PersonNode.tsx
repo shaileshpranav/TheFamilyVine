@@ -9,6 +9,8 @@ export type PersonNodeData = {
   person: GraphPerson
   isMe: boolean
   selected: boolean
+  /** While a line between two people is shown: on it, or off it and dimmed. */
+  path: 'on' | 'off' | null
   canAdd: boolean
   onSelect: (id: string) => void
   onAdd: (id: string) => void
@@ -17,9 +19,15 @@ export type PersonNodeType = Node<PersonNodeData, 'person'>
 
 /** A person on the canvas: a tile with their initials, then their name and years. */
 function PersonNode({ data }: NodeProps<PersonNodeType>) {
-  const { person, isMe, selected, canAdd, onSelect, onAdd } = data
+  const { person, isMe, selected, path, canAdd, onSelect, onAdd } = data
   const years = lifespan(person.birth, person.death)
-  const cls = ['tree-node', isMe && 'me', !person.is_living && 'deceased', selected && 'selected']
+  const cls = [
+    'tree-node',
+    isMe && 'me',
+    !person.is_living && 'deceased',
+    selected && 'selected',
+    path && `path-${path}`,
+  ]
     .filter(Boolean)
     .join(' ')
   return (

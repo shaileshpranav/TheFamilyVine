@@ -2407,6 +2407,11 @@
             "type": "array",
             "title": "Children"
           },
+          "married": {
+            "type": "boolean",
+            "title": "Married",
+            "default": false
+          },
           "marriage": {
             "anyOf": [
               {
@@ -2424,6 +2429,7 @@
           "status",
           "partner_ids",
           "children",
+          "married",
           "marriage"
         ],
         "title": "GraphFamily",

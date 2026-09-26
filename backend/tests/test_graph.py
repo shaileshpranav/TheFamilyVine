@@ -39,7 +39,17 @@ async def test_couple_status_marriage_date_and_years(api, family):
     graph = (await owner.get(url(family))).json()
     couple = by_partners(graph)[frozenset({family["dad"], family["mum"]})]
     assert couple["status"] == "divorced"
-    assert couple["marriage"]["short"] == "1986"
+    assert couple["married"] and couple["marriage"]["short"] == "1986"
+    grandparents = by_partners(graph)[frozenset({family["grandpa"], family["grandma"]})]
+    assert not grandparents["married"] and grandparents["marriage"] is None
+
+    # A marriage with no date still counts.
+    gp = (await owner.get(f"{base}/people/{family['grandpa']}")).json()
+    gfid = next(r["family_id"] for r in gp["relatives"] if r["relation"] == "partner")
+    await owner.post(f"{base}/families/{gfid}/events", {"type": "marriage"})
+    graph = (await owner.get(url(family))).json()
+    grandparents = by_partners(graph)[frozenset({family["grandpa"], family["grandma"]})]
+    assert grandparents["married"] and grandparents["marriage"] is None
     dad = next(p for p in graph["people"] if p["id"] == family["dad"])
     assert dad["birth"]["date"]["short"] == "1955"
     assert dad["display_name"] == "Dad Test"

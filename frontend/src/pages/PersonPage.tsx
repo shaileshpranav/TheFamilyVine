@@ -1,8 +1,8 @@
-import { ArrowLeft, Info, PencilSimple, TreeStructure, UserPlus } from '@phosphor-icons/react'
+import { ArrowLeft, Info, Path, PencilSimple, TreeStructure, UserPlus } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import type { PersonDetail, Schemas } from '../api/client'
-import { useCurrentTree, usePeople, usePerson } from '../api/hooks'
+import { useCurrentTree, useKin, usePeople, usePerson } from '../api/hooks'
 import AddPersonForm from '../components/AddPersonForm'
 import FamilySection from '../components/FamilySection'
 import ProfileEditor from '../components/ProfileEditor'
@@ -12,6 +12,7 @@ import Timeline, { type Couple } from '../components/Timeline'
 import { Avatar, ErrorText, Label, LivingBadge, Loading, Reveal, YouTag } from '../components/ui'
 import { lifespan } from '../lib/dates'
 import type { EventType, NewRelation } from '../lib/genealogy'
+import { relationToYou } from '../lib/relationship'
 
 type Panel = null | 'edit' | 'pick' | { relation: NewRelation }
 
@@ -23,6 +24,7 @@ export default function PersonPage() {
   const [panel, setPanel] = useState<Panel>(null)
   const [adding, setAdding] = useState<EventType | 'any' | null>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
+  const kin = useKin(tree.id)
 
   if (isLoading) return <Loading rows={2} />
   if (error || !person) return <ErrorText error={error ?? 'Person not found'} />
@@ -31,6 +33,7 @@ export default function PersonPage() {
   const perms = person.permissions
   const meId = tree.access.my_person_id
   const isMe = person.id === meId
+  const relation = meId && kin && !isMe ? relationToYou(kin.relate(meId, person.id)) : null
   const span = lifespan(person.birth, person.death)
   const meta = [
     person.birth_surname && `née ${person.birth_surname}`,
@@ -60,6 +63,7 @@ export default function PersonPage() {
             {isMe && <YouTag />}
           </h1>
           {person.native_name && <p className="native-name">{person.native_name}</p>}
+          {relation && <p className="relation-to-you">{relation}</p>}
           <div className="person-meta">
             <LivingBadge living={person.is_living} />
             {[span && <span key="span" className="mono">{span}</span>, ...meta.map((m) => <span key={String(m)}>{m}</span>)]
@@ -84,6 +88,11 @@ export default function PersonPage() {
           <Link to={`../../tree?focus=${person.id}`} relative="path" className="btn btn-ghost">
             <TreeStructure size={16} /> Show on tree
           </Link>
+          {!isMe && (
+            <Link to={`../../tree?relate=${person.id}`} relative="path" className="btn btn-ghost">
+              <Path size={16} /> How are we related?
+            </Link>
+          )}
           {!perms.can_edit && (
             <p className="note">
               <Info size={15} /> {whyReadOnly(person, tree.access.highest_role)}
