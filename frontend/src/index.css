@@ -16,6 +16,9 @@
   --ring: rgba(17, 17, 17, 0.08);
   --lift: 0 2px 8px rgba(0, 0, 0, 0.04);
   --ambient: rgba(176, 132, 84, 1);
+  --line: #cdc8bd;
+  --line-step: #93ad86;
+  --canvas-dots: rgba(17, 17, 17, 0.1);
 
   --red-bg: #fdebec;
   --red: #9f2f2d;
@@ -59,6 +62,9 @@
     --ring: rgba(237, 237, 234, 0.12);
     --lift: 0 2px 8px rgba(0, 0, 0, 0.3);
     --ambient: rgba(214, 170, 120, 1);
+    --line: #4d4b46;
+    --line-step: #6f8f69;
+    --canvas-dots: rgba(255, 255, 255, 0.08);
 
     --red-bg: rgba(229, 83, 75, 0.16);
     --red: #f0a19c;
@@ -483,6 +489,10 @@ a:hover {
   .preview-badge {
     bottom: calc(76px + env(safe-area-inset-bottom));
   }
+}
+/* The badge sits along the bottom of the tree canvas, so lift the canvas's floating controls above it. */
+body:has(.preview-badge) :is(.canvas-controls, .canvas-foot) {
+  bottom: 72px;
 }
 
 /* ---- page structure ------------------------------------------------------------------ */
@@ -1103,7 +1113,8 @@ input[type='checkbox'] {
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-lg);
 }
-.empty svg {
+/* The illustration only, not icons inside the action button. */
+.empty > svg {
   margin-bottom: 14px;
 }
 .empty-title {
@@ -1578,6 +1589,541 @@ fieldset.field legend {
   align-items: center;
 }
 
+/* ---- tree canvas -------------------------------------------------------------------- */
+
+.page-canvas {
+  max-width: none;
+  padding: 0;
+  height: 100vh;
+}
+.canvas,
+.canvas-message {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+.canvas-message {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.canvas .react-flow {
+  --xy-background-color: transparent;
+}
+.react-flow__attribution {
+  background: transparent !important;
+  font-size: 10px;
+}
+.react-flow__attribution a {
+  color: var(--faint) !important;
+}
+
+.canvas-head {
+  position: absolute;
+  z-index: 5;
+  top: 28px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  pointer-events: none;
+}
+.canvas-head > * {
+  pointer-events: auto;
+}
+.canvas-title {
+  flex: 1;
+  min-width: 0;
+}
+.canvas-title .kicker {
+  margin-bottom: 8px;
+}
+.canvas-title h1,
+.canvas-hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.canvas-title h1 {
+  font-size: 1.9rem;
+}
+.canvas-hint {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.canvas-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.canvas-tools select {
+  width: auto;
+}
+.canvas-tools > * {
+  flex: none;
+}
+.tree-search {
+  width: 240px;
+}
+.tree-search-results {
+  max-height: 320px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+}
+.tree-search-results .menu-item {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.canvas-note {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.canvas-controls {
+  position: absolute;
+  z-index: 5;
+  right: 20px;
+  bottom: 36px;
+  display: grid;
+  gap: 6px;
+  transition: right 240ms var(--ease-out);
+}
+.canvas.has-panel .canvas-controls {
+  right: 416px;
+}
+.canvas.has-panel .canvas-head {
+  right: 412px;
+}
+.canvas-controls button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--heading);
+  cursor: pointer;
+  transition:
+    background 150ms,
+    border-color 150ms,
+    transform 120ms var(--ease-out);
+}
+.canvas-controls button:hover {
+  background: var(--hover);
+  border-color: var(--border-strong);
+}
+.canvas-controls button:active {
+  transform: scale(0.96);
+}
+
+.canvas-foot {
+  position: absolute;
+  z-index: 5;
+  left: 20px;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rel-switch,
+.key-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--heading);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.switch {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--border-strong);
+  transition: background 160ms;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  transition: transform 160ms var(--ease-out);
+}
+.switch.on {
+  background: var(--primary);
+}
+.switch.on::after {
+  transform: translateX(12px);
+  background: var(--on-primary);
+}
+.key-toggle {
+  padding: 0 14px;
+}
+.key-toggle:hover,
+.key-toggle[aria-expanded='true'] {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+.line-key {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  display: grid;
+  gap: 12px;
+  width: max-content;
+  padding: 12px 16px 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  font-size: 13px;
+  color: var(--text);
+}
+.line-key-group {
+  margin: 0 0 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.line-key .plain {
+  gap: 4px;
+}
+.line-key li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.line-key svg {
+  flex: none;
+  overflow: visible;
+}
+
+/* Lines sit in one node beneath the people; only their hit areas take pointer events. */
+.react-flow__node-lines {
+  pointer-events: none !important;
+}
+.tree-line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    stroke 150ms,
+    stroke-width 150ms;
+}
+/* Separated and divorced couples; divorced ones also get two slashes. */
+.tree-line.broken {
+  stroke-dasharray: 7 6;
+}
+.tree-line.rel-adopted {
+  stroke-dasharray: 14 6;
+}
+.tree-line.rel-foster {
+  stroke-dasharray: 10 5 2 5;
+}
+/* Step-parents, drawn as dots (round caps on short dashes). */
+.tree-line.step,
+.tree-line.rel-step {
+  stroke: var(--line-step);
+  stroke-dasharray: 1 6;
+}
+.tree-line.lit {
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+.tree-line.hot {
+  stroke: var(--heading);
+  stroke-width: 2.4;
+}
+.tree-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.tree-tip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  transform-origin: 50% 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+.tree-tip strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 500;
+}
+.tree-tip span {
+  opacity: 0.75;
+}
+
+.tree-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 140px;
+  height: 116px;
+  /* Only the tile is clickable, so lines running past a person can still be hovered. */
+  pointer-events: none;
+}
+.tree-tile-wrap {
+  position: relative;
+}
+.tree-tile,
+.tree-add {
+  pointer-events: auto;
+}
+.tree-tile {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--heading);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  cursor: pointer;
+  transition:
+    box-shadow 180ms var(--ease-out),
+    border-color 150ms,
+    transform 180ms var(--ease-out);
+}
+.tree-tile:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--lift);
+}
+.tree-tile:active {
+  transform: scale(0.97);
+}
+.tree-node.deceased .tree-tile {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+.tree-node.me .tree-tile {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+.tree-node.selected .tree-tile {
+  box-shadow:
+    0 0 0 3px var(--canvas),
+    0 0 0 5px var(--heading);
+  transform: scale(1.04);
+}
+.tree-add {
+  position: absolute;
+  right: -9px;
+  bottom: -9px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--canvas);
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+}
+.tree-name {
+  display: -webkit-box;
+  max-width: 136px;
+  margin-top: 10px;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: var(--heading);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+}
+.tree-years {
+  margin-top: 3px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.tree-panel {
+  position: absolute;
+  z-index: 6;
+  top: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  align-content: start;
+  /* Rows keep their full height and the panel scrolls, rather than squashing clipped text. */
+  grid-auto-rows: max-content;
+  gap: 18px;
+  width: 380px;
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  animation: panel-in 240ms var(--ease-out);
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+.tree-panel-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.tree-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 32px;
+}
+.tree-panel-head .avatar-lg {
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+}
+.tree-panel-name {
+  font-size: 1.45rem;
+}
+.tree-panel-bio {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  font-size: 14px;
+}
+.tree-panel-section {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.tree-panel-rel {
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tree-panel-rel:hover .rel-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tree-panel .timeline .tl-row {
+  padding: 8px 0;
+}
+.tree-panel .tl-year {
+  width: 64px;
+}
+/* The relative picker and add form are cards elsewhere; inside the panel they sit flat. */
+.tree-panel .card {
+  margin: 0 !important;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.tree-panel .grid-2,
+.tree-panel .relation-groups {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 899px) {
+  .page-canvas {
+    padding: 0;
+    height: calc(100dvh - 56px - 62px - env(safe-area-inset-bottom));
+  }
+  .canvas-head,
+  .canvas.has-panel .canvas-head {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+  .canvas-title {
+    display: none;
+  }
+  .canvas-tools {
+    width: 100%;
+  }
+  .canvas-tools > .tree-search {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+  .canvas-tools > select {
+    flex: 0 1 auto;
+    max-width: 44%;
+  }
+  .canvas-controls,
+  .canvas.has-panel .canvas-controls {
+    right: 12px;
+    bottom: 30px;
+  }
+  .canvas-foot {
+    left: 12px;
+    bottom: 12px;
+  }
+  .tree-panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 72%;
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    animation: sheet-up 280ms var(--ease-out);
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
 /* ---- motion -------------------------------------------------------------------------- */
 
 @keyframes fade-up {
@@ -1621,7 +2167,8 @@ fieldset.field legend {
     animation: none;
   }
   .ambient::before,
-  .skeleton {
+  .skeleton,
+  .tree-panel {
     animation: none;
   }
 }

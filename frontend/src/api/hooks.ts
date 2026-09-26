@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOutletContext, useParams } from 'react-router'
 import { api, type Tree, unwrap } from './client'
 
@@ -116,5 +116,19 @@ export function usePlaces(treeId: string) {
     queryFn: () =>
       unwrap(api.GET('/api/trees/{tree_id}/places', { params: { path: { tree_id: treeId } } })),
     staleTime: 60_000,
+  })
+}
+
+/** Everyone the viewer can see (optionally one branch) with the couples that join them. */
+export function useTreeGraph(treeId: string, subtreeId?: string) {
+  return useQuery({
+    queryKey: ['tree', treeId, 'graph', subtreeId ?? ''],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/trees/{tree_id}/graph', {
+          params: { path: { tree_id: treeId }, query: subtreeId ? { subtree_id: subtreeId } : {} },
+        }),
+      ),
+    placeholderData: keepPreviousData,
   })
 }

@@ -1239,6 +1239,70 @@
         }
       }
     },
+    "/api/trees/{tree_id}/people/{person_id}/parents": {
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Add Parent",
+        "description": "Record a step-parent as one of this person's parents.\n\nThis fixes the common mix-up of adding someone's other parent as their parent's partner.\nThe person moves out of the family where that partner raises them alone and into the\ncouple's family, keeping how they're related (biological, adopted\u2026).",
+        "operationId": "add_parent_api_trees__tree_id__people__person_id__parents_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkParent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trees/{tree_id}/people/{person_id}/linked-user": {
       "put": {
         "tags": [
@@ -1646,6 +1710,68 @@
                     "$ref": "#/components/schemas/PlaceOut"
                   },
                   "title": "Response List Places Api Trees  Tree Id  Places Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/graph": {
+      "get": {
+        "tags": [
+          "graph"
+        ],
+        "summary": "Tree Graph",
+        "operationId": "tree_graph_api_trees__tree_id__graph_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "subtree_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this branch",
+              "title": "Subtree Id"
+            },
+            "description": "Only this branch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreeGraphOut"
                 }
               }
             }
@@ -2174,6 +2300,145 @@
         ],
         "title": "FuzzyDateOut"
       },
+      "GraphChild": {
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Person Id"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/ChildRelation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "person_id",
+          "relation"
+        ],
+        "title": "GraphChild"
+      },
+      "GraphFamily": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PartnerStatus"
+          },
+          "partner_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Partner Ids"
+          },
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/GraphChild"
+            },
+            "type": "array",
+            "title": "Children"
+          },
+          "marriage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FuzzyDateOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "partner_ids",
+          "children",
+          "marriage"
+        ],
+        "title": "GraphFamily",
+        "description": "A couple (or single parent) and their children, as drawn on the canvas."
+      },
+      "GraphPerson": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "given_names": {
+            "type": "string",
+            "title": "Given Names"
+          },
+          "surname": {
+            "type": "string",
+            "title": "Surname"
+          },
+          "sex": {
+            "$ref": "#/components/schemas/Sex"
+          },
+          "is_living": {
+            "type": "boolean",
+            "title": "Is Living"
+          },
+          "linked_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked User Id"
+          },
+          "birth": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VitalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "death": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VitalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "given_names",
+          "surname",
+          "sex",
+          "is_living",
+          "linked_user_id",
+          "birth",
+          "death"
+        ],
+        "title": "GraphPerson",
+        "description": "What the tree canvas needs to draw one person."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2385,6 +2650,20 @@
           "usable"
         ],
         "title": "InvitePreview"
+      },
+      "LinkParent": {
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Person Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "person_id"
+        ],
+        "title": "LinkParent"
       },
       "LinkUser": {
         "properties": {
@@ -2868,6 +3147,14 @@
             "type": "array",
             "title": "Partners"
           },
+          "only_parent_of": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Only Parent Of"
+          },
           "relatives": {
             "items": {
               "$ref": "#/components/schemas/RelativeOut"
@@ -2912,6 +3199,7 @@
           "parents",
           "children",
           "partners",
+          "only_parent_of",
           "relatives",
           "timeline"
         ],
@@ -3437,6 +3725,15 @@
           "status": {
             "$ref": "#/components/schemas/PartnerStatus",
             "default": "together"
+          },
+          "also_parent_of": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Also Parent Of",
+            "default": []
           }
         },
         "type": "object",
@@ -3515,6 +3812,11 @@
             "type": "boolean",
             "title": "Can Edit Family",
             "default": false
+          },
+          "can_make_parent": {
+            "type": "boolean",
+            "title": "Can Make Parent",
+            "default": false
           }
         },
         "type": "object",
@@ -3525,7 +3827,8 @@
           "family_id",
           "status",
           "via_person_id",
-          "can_edit_family"
+          "can_edit_family",
+          "can_make_parent"
         ],
         "title": "RelativeOut"
       },
@@ -3953,6 +4256,30 @@
           "person_count"
         ],
         "title": "TreeDetailOut"
+      },
+      "TreeGraphOut": {
+        "properties": {
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/GraphPerson"
+            },
+            "type": "array",
+            "title": "People"
+          },
+          "families": {
+            "items": {
+              "$ref": "#/components/schemas/GraphFamily"
+            },
+            "type": "array",
+            "title": "Families"
+          }
+        },
+        "type": "object",
+        "required": [
+          "people",
+          "families"
+        ],
+        "title": "TreeGraphOut"
       },
       "TreeListItem": {
         "properties": {

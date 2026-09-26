@@ -1,4 +1,4 @@
-import { ArrowLeft, Info, PencilSimple, UserPlus } from '@phosphor-icons/react'
+import { ArrowLeft, Info, PencilSimple, TreeStructure, UserPlus } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import type { PersonDetail, Schemas } from '../api/client'
@@ -81,6 +81,9 @@ export default function PersonPage() {
               <UserPlus size={16} /> Add a relative
             </button>
           )}
+          <Link to={`../../tree?focus=${person.id}`} relative="path" className="btn btn-ghost">
+            <TreeStructure size={16} /> Show on tree
+          </Link>
           {!perms.can_edit && (
             <p className="note">
               <Info size={15} /> {whyReadOnly(person, tree.access.highest_role)}

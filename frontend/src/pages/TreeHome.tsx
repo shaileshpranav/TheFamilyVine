@@ -1,4 +1,4 @@
-import { CaretRight, Plus, UserPlus } from '@phosphor-icons/react'
+import { CaretRight, Plus, TreeStructure, UserPlus } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useCurrentTree, useMembers, usePeople, useSubtrees } from '../api/hooks'
 import { AccessCard, TreeLinksCard, YourProfileCard } from '../components/TreeCards'
@@ -27,15 +27,18 @@ export default function TreeHome() {
         actions={
           <>
             {access.can_manage_members && (
-              <Link to="members" className="btn btn-secondary">
+              <Link to="members" className="btn btn-ghost">
                 <UserPlus size={16} /> Invite
               </Link>
             )}
             {canAddFreestanding && (
-              <Link to="people?add=person" className="btn">
+              <Link to="people?add=person" className="btn btn-secondary">
                 <Plus size={16} /> Add person
               </Link>
             )}
+            <Link to="tree" className="btn">
+              <TreeStructure size={16} /> Open the tree
+            </Link>
           </>
         }
       />

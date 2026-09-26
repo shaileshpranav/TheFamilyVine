@@ -30,6 +30,25 @@ const ROUTES: [RegExp, Handler][] = [
   [/^\/api\/trees\/([^/]+)\/subtrees$/, (d, [, t]) => d.subtrees[t]],
   [/^\/api\/trees\/([^/]+)\/subtrees\/([^/]+)\/people$/, (d, [, t, s]) => d.subtreePeople[t]?.[s]],
   [/^\/api\/trees\/([^/]+)\/places$/, (d, [, t]) => d.places[t]],
+  [
+    /^\/api\/trees\/([^/]+)\/graph$/,
+    (d, [, t], url) => {
+      const graph = d.graph[t]
+      const branch = url.searchParams.get('subtree_id')
+      if (!graph || !branch) return graph
+      const ids = new Set((d.subtreePeople[t]?.[branch] ?? []).map((p) => p.id))
+      return {
+        people: graph.people.filter((p) => ids.has(p.id)),
+        families: graph.families
+          .map((f) => ({
+            ...f,
+            partner_ids: f.partner_ids.filter((x) => ids.has(x)),
+            children: f.children.filter((c) => ids.has(c.person_id)),
+          }))
+          .filter((f) => f.partner_ids.length + f.children.length >= 2),
+      }
+    },
+  ],
   [/^\/api\/invites\/([^/]+)$/, (d, [, token]) => d.invitePreview[token]],
 ]
 

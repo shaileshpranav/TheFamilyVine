@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { api, type Person, type PersonDetail, type Schemas, unwrap } from '../api/client'
 import { useInvalidateTree, usePeople } from '../api/hooks'
 import { ADD_RELATION, type NewRelation, type PartnerStatus, STATUS_LABEL } from '../lib/genealogy'
@@ -76,6 +76,10 @@ export default function AddPersonForm({
   const [died, setDied] = useState({ year: '', about: false })
   const [status, setStatus] = useState<PartnerStatus>('together')
   const [choice, setChoice] = useState(choices[0]?.value ?? '')
+  // A new partner is usually the other parent of children recorded with one parent only.
+  const shareable = relation === 'partner' && anchor ? anchor.only_parent_of : []
+  const [alsoParentOf, setAlsoParentOf] = useState(shareable)
+  const shareId = useId()
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }))
   const invalidate = useInvalidateTree()
 
@@ -87,6 +91,7 @@ export default function AddPersonForm({
               person_id: anchor.id,
               relation,
               status,
+              ...(relation === 'partner' ? { also_parent_of: alsoParentOf } : {}),
               ...(relation === 'child'
                 ? choice === 'new'
                   ? { new_family: true }
@@ -191,6 +196,29 @@ export default function AddPersonForm({
               ))}
             </select>
           </Field>
+        )}
+        {shareable.length > 0 && anchor && (
+          <div className="field" role="group" aria-labelledby={shareId}>
+            <span className="field-label" id={shareId}>
+              Also the parent of
+            </span>
+            {shareable.map((id) => (
+              <label key={id} className="check">
+                <input
+                  type="checkbox"
+                  checked={alsoParentOf.includes(id)}
+                  onChange={(e) =>
+                    setAlsoParentOf((ids) => (e.target.checked ? [...ids, id] : ids.filter((x) => x !== id)))
+                  }
+                />
+                {names.get(id)?.display_name ?? 'Unknown'}
+              </label>
+            ))}
+            <span className="field-hint">
+              Untick anyone who is only {anchor.given_names || anchor.display_name}’s child, such as a child from an
+              earlier relationship.
+            </span>
+          </div>
         )}
       </div>
       <ErrorText error={create.error} />
