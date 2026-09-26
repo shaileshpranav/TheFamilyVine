@@ -2,6 +2,7 @@ import { CaretRight, SquaresFour } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useMe } from '../api/hooks'
 import AccountCard from '../components/AccountCard'
+import SettingsCard from '../components/SettingsCard'
 import { PageHeader, Reveal } from '../components/ui'
 
 export default function AccountPage() {
@@ -23,6 +24,9 @@ export default function AccountPage() {
               Open a tree <CaretRight size={13} />
             </div>
           </Link>
+        </Reveal>
+        <Reveal className="span-6" delay={160}>
+          <SettingsCard />
         </Reveal>
       </div>
     </>

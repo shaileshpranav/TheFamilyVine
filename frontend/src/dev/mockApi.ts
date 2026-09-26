@@ -1,6 +1,6 @@
 /**
  * Answers `/api/*` requests in the browser for preview mode. Reads come from the sample
- * dataset; every change is refused so it's obvious nothing is saved.
+ * dataset; every change except settings is refused, so it's obvious nothing is saved.
  */
 import type { Role } from '../api/client'
 import { buildDataset, type Dataset } from './fixtures'
@@ -71,6 +71,12 @@ export function installMockApi(role: Role) {
     }
     // A short delay so loading states are visible, as they would be against the real API.
     await new Promise((resolve) => setTimeout(resolve, 150))
+    if (request.method === 'PATCH' && url.pathname === '/api/me') {
+      // Settings are the one change allowed, kept for this visit, so themes can be tried.
+      const { preferences } = (await request.json()) as { preferences?: Partial<Dataset['me']['preferences']> }
+      data.me = { ...data.me, preferences: { ...data.me.preferences, ...preferences } }
+      return json(200, data.me)
+    }
     if (request.method !== 'GET') {
       return json(403, { detail: 'Preview mode: changes aren’t saved.' })
     }

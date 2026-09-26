@@ -6,6 +6,7 @@ import { api, unwrap } from '../api/client'
 import { keys, useMe, useTrees } from '../api/hooks'
 import { Empty, ErrorText, Field, Loading, PageHeader, RoleBadge } from '../components/ui'
 import { staggerIndex } from '../lib/format'
+import { treeLink } from '../lib/preferences'
 
 export default function TreesPage() {
   const { data: me } = useMe()
@@ -42,7 +43,7 @@ export default function TreesPage() {
         <ul className="grid-cards stagger">
           {trees.map((t, i) => (
             <li key={t.id} style={staggerIndex(i)}>
-              <Link to={`/trees/${t.id}`} className="card card-link" style={{ height: '100%' }}>
+              <Link to={treeLink(t.id, me?.preferences)} className="card card-link" style={{ height: '100%' }}>
                 <div className="actions" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
                   <h2 className="card-title">{t.name}</h2>
                   <RoleBadge role={t.highest_role} />

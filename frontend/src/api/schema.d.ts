@@ -1097,6 +1097,42 @@ export interface components {
             name: string;
         };
         /**
+         * Preferences
+         * @description App settings, saved to the account so they follow the user between devices.
+         */
+        Preferences: {
+            /**
+             * Theme
+             * @default system
+             * @enum {string}
+             */
+            theme: "system" | "light" | "dark";
+            /**
+             * Text Size
+             * @default normal
+             * @enum {string}
+             */
+            text_size: "normal" | "large";
+            /**
+             * Start Page
+             * @default home
+             * @enum {string}
+             */
+            start_page: "home" | "tree";
+        };
+        /**
+         * PreferencesUpdate
+         * @description Only the settings given change.
+         */
+        PreferencesUpdate: {
+            /** Theme */
+            theme?: ("system" | "light" | "dark") | null;
+            /** Text Size */
+            text_size?: ("normal" | "large") | null;
+            /** Start Page */
+            start_page?: ("home" | "tree") | null;
+        };
+        /**
          * RelativeLink
          * @description How a person, new or already on the tree, is connected to `person_id`.
          */
@@ -1398,6 +1434,7 @@ export interface components {
             display_name: string;
             /** Avatar Url */
             avatar_url: string | null;
+            preferences: components["schemas"]["Preferences"];
         };
         /** UserUpdate */
         UserUpdate: {
@@ -1405,6 +1442,7 @@ export interface components {
             display_name?: string | null;
             /** Avatar Url */
             avatar_url?: string | null;
+            preferences?: components["schemas"]["PreferencesUpdate"] | null;
         };
         /** ValidationError */
         ValidationError: {
