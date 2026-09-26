@@ -39,7 +39,20 @@ function messageFrom(error: unknown): string {
 export async function unwrap<T>(
   call: Promise<{ data?: T; error?: unknown; response: Response }>,
 ): Promise<T> {
-  const { data, error, response } = await call
+  let result: Awaited<typeof call>
+  try {
+    result = await call
+  } catch (e) {
+    // fetch itself failed: no connection, and nothing saved on the device for this request.
+    if (!(e instanceof TypeError)) throw e
+    throw new ApiError(
+      navigator.onLine
+        ? 'Couldn’t reach TheFamilyVine. Check your connection and try again.'
+        : 'You’re offline. Try again once you’re connected.',
+      0,
+    )
+  }
+  const { data, error, response } = result
   if (!response.ok) throw new ApiError(messageFrom(error), response.status)
   return data as T
 }

@@ -63,6 +63,8 @@ The design work (from the Claude Design reference) comes next, in six steps:
 5. **Home dashboard and set-up flow** ✅: "Welcome back" with generations among the stats; *On this day* with birthdays, wedding anniversaries and memorials today and in the week ahead; recently added with relation labels; "Plant your family tree", a three-step start (yourself and the tree, your parents, invite links) that replaces the old new-tree form
 6. **Photos and genetic conditions** ✅: a gallery on every profile (captions, a full-size viewer, choosing the profile picture), profile pictures on avatars and tree tiles, a tree cover photo; uploads resized with their location data removed, kept on the server's `media` volume and only served to people who may see them. Health conditions (diagnosed, carrier, watch, untested) visible only to the person and their blood relatives, admins included; living people record their own; "watch" items traced from parents, grandparents, great-grandparents and siblings
 
+**Installable app** ✅ (the first step towards the mobile app): installs to a phone's home screen or a computer's dock from an Install button, or on iPhone from Safari's Share menu, offered on the tree's home page (phones) and in Settings; app icons made from the favicon; opens offline with the family data and photos last viewed on that device, cleared on signing out or when someone else signs in; a "You're offline" note, and a "New version" note with Reload after a deploy
+
 Later phases, unchanged:
 
 - **Stories and documents:** markdown stories linked to several people, document uploads, tagging people in photos

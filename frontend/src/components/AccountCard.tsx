@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { signOut } from 'supertokens-auth-react/recipe/session'
 import { api, unwrap } from '../api/client'
 import { keys, useMe } from '../api/hooks'
+import { clearOfflineData } from '../lib/offline'
 import { exitPreview, previewRole } from '../preview'
 import { ErrorText, Label } from './ui'
 
@@ -25,6 +26,7 @@ export default function AccountCard() {
 
   async function onSignOut() {
     if (import.meta.env.DEV && previewRole) return exitPreview()
+    await clearOfflineData()
     await signOut()
     qc.clear()
     navigate('/auth')

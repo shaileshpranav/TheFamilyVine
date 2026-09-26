@@ -498,6 +498,70 @@ body:has(.preview-badge) :is(.canvas-controls, .canvas-foot) {
   bottom: 72px;
 }
 
+/* ---- installed app ------------------------------------------------------------------- */
+
+/* "You're offline" and "New version" notes, above the phone tab bar. */
+.app-status {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  z-index: 60;
+  display: grid;
+  gap: 8px;
+  width: min(480px, calc(100% - 32px));
+  transform: translateX(-50%);
+}
+.app-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+.app-note > svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+@media (max-width: 899px) {
+  body:has(.tabbar) .app-status {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+body:has(.app-status) :is(.canvas-controls, .canvas-foot) {
+  bottom: 72px;
+}
+@media (max-width: 899px) {
+  /* On phones the notes sit just above the tab bar, over the bottom of the canvas. */
+  body:has(.app-status) :is(.canvas-controls, .canvas-foot) {
+    bottom: 110px;
+  }
+}
+
+.install-card {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+}
+.install-icon {
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+.inline-icon {
+  vertical-align: -2px;
+}
+@media (min-width: 900px) {
+  .phone-only {
+    display: none;
+  }
+}
+
 /* ---- page structure ------------------------------------------------------------------ */
 
 .page-head {
