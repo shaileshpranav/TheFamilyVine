@@ -30,6 +30,12 @@ To run the pieces by hand instead, use `docker compose up -d`, then `cd backend 
 
 Add `?preview` to any URL, for example http://localhost:5173/trees/hollis?preview, to see the app filled with a sample family (the Hollis family from the design) without signing in. Use `?preview=contributor` or `?preview=personal` to see another role's view, and `?preview=off` to go back. Nothing is saved in preview mode, and none of it is included in production builds. The sample data lives in `frontend/src/dev/`.
 
+## Installable app
+
+The web app can be installed on a phone or computer: on Android and in Chrome or Edge from an Install button (the tree's home page on phones, and Settings), and on iPhone or iPad from Safari's Share menu (Add to Home Screen). Installed, it opens without the browser's bars and works offline for anything already viewed on that device. What's kept offline is cleared on signing out, and when someone else signs in on the same device. When a new version is deployed, an open app offers to reload.
+
+The service worker behind this only exists in production builds, so `./dev.sh` and preview mode are unaffected. To try it locally, run the API as usual and then `cd frontend && npm run build && npm run preview -- --host 127.0.0.1 --port 4173` (or start `web-preview` from `.claude/launch.json`), and open http://127.0.0.1:4173. Using 127.0.0.1 instead of localhost keeps its sign-in separate from the dev server's. Each new build then shows the "New version" note there, as a deploy would.
+
 ## Everyday commands
 
 | Task | Command |
@@ -40,6 +46,7 @@ Add `?preview` to any URL, for example http://localhost:5173/trees/hollis?previe
 | New migration after model changes | `cd backend && uv run alembic revision --autogenerate -m "..."` then `uv run alembic upgrade head` |
 | Regenerate typed API client after API changes | `cd frontend && npm run gen:api` |
 | Type-check / lint / build (web) | `cd frontend && npx tsc -b && npm run lint && npm run build` |
+| Regenerate the app icons after changing `favicon.svg` | `cd frontend && npm run gen:icons` |
 
 ## Layout
 

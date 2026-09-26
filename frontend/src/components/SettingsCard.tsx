@@ -1,9 +1,12 @@
+import { DownloadSimple } from '@phosphor-icons/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useId } from 'react'
+import { type ReactNode, useId } from 'react'
 import { api, type Schemas, unwrap } from '../api/client'
 import { keys, useMe } from '../api/hooks'
+import { type InstallState, useInstall } from '../lib/install'
 import { applyPreferences, DEFAULT_PREFERENCES, type Preferences } from '../lib/preferences'
-import { ErrorText, Label } from './ui'
+import { IosInstallSteps } from './InstallCard'
+import { ErrorText, Label, Tag } from './ui'
 
 type Choice<K extends keyof Preferences> = [Preferences[K], string]
 
@@ -64,6 +67,7 @@ export default function SettingsCard() {
           ]}
           onChange={(start_page) => save.mutate({ start_page })}
         />
+        <InstallSetting />
       </div>
       <ErrorText error={save.error} />
     </section>
@@ -107,6 +111,33 @@ function Setting<K extends keyof Preferences>({
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+const INSTALL_HINTS: Record<InstallState, ReactNode> = {
+  installed: 'Installed on this device.',
+  prompt: 'Add it to your home screen or dock, so it opens like any other app and works offline.',
+  ios: <IosInstallSteps />,
+  'mac-safari': 'In Safari’s menu bar, choose File, then “Add to Dock”.',
+  other: 'Use your browser’s menu to install it or add it to your home screen.',
+}
+
+/** Unlike the settings above, this is about the device in hand rather than the account. */
+function InstallSetting() {
+  const { state, install } = useInstall()
+  return (
+    <div className="setting">
+      <div className="grow">
+        <p className="setting-label">Install the app</p>
+        <p className="muted small">{INSTALL_HINTS[state]}</p>
+      </div>
+      {state === 'prompt' && (
+        <button type="button" className="btn btn-secondary btn-sm" onClick={() => void install()}>
+          <DownloadSimple size={15} /> Install
+        </button>
+      )}
+      {state === 'installed' && <Tag tone="green">Installed</Tag>}
     </div>
   )
 }
