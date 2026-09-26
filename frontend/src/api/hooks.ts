@@ -1,5 +1,7 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useOutletContext, useParams } from 'react-router'
+import { Kin } from '../lib/relationship'
 import { api, type Tree, unwrap } from './client'
 
 export const keys = {
@@ -122,6 +124,12 @@ export function usePlaces(treeId: string) {
 }
 
 /** Everyone the viewer can see (optionally one branch) with the couples that join them. */
+/** Relationships between everyone the viewer can see (see lib/relationship). */
+export function useKin(treeId: string) {
+  const { data } = useTreeGraph(treeId)
+  return useMemo(() => (data ? new Kin(data) : null), [data])
+}
+
 export function useTreeGraph(treeId: string, subtreeId?: string) {
   return useQuery({
     queryKey: ['tree', treeId, 'graph', subtreeId ?? ''],

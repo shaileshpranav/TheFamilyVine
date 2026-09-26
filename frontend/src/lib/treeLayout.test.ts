@@ -9,6 +9,7 @@ import {
   type TreeGraph,
   assignGenerations,
   layoutTree,
+  pathSegments,
   treeLines,
 } from './treeLayout'
 
@@ -54,6 +55,7 @@ function family(
     status,
     partner_ids: partners,
     children: children.map((c) => ({ person_id: c, relation: 'biological' })),
+    married: false,
     marriage: null,
   }
 }
@@ -206,3 +208,30 @@ describe('treeLines', () => {
     expect(lines.find((l) => l.key === 'children:david-susan')!.title).toBe('Parent and child')
   })
 })
+
+describe('pathSegments', () => {
+  it('lights only the way along the chain, not the lines to other children', async () => {
+    const layout = await layoutTree(HOLLIS, new ELK())
+    const lines = treeLines(HOLLIS, layout)
+    const segments = pathSegments(lines, ['ellie', 'margaret', 'arthur', 'david', 'grace'])
+    const x = (id: string) => layout.positions.get(id)!.x + NODE_W / 2
+    const touches = (id: string) =>
+      segments.some((s) => s.points.some((p) => p.x === x(id) && p.y === layout.positions.get(id)!.y))
+    // Down to Ellie and Grace (their tile tops), and never down to Tom, Ellie's brother.
+    expect(touches('ellie')).toBe(true)
+    expect(touches('grace')).toBe(true)
+    expect(touches('tom')).toBe(false)
+    // From the stem between James and Margaret, the light runs along to Margaret, not James.
+    const side = (id: string, dx: number) =>
+      segments.some((s) =>
+        s.points.some((p) => p.x === x(id) + dx && p.y === layout.positions.get(id)!.y + TILE / 2),
+      )
+    const [james, margaret] = [x('james'), x('margaret')]
+    expect(side('margaret', james < margaret ? -TILE / 2 : TILE / 2)).toBe(true)
+    expect(side('james', james < margaret ? TILE / 2 : -TILE / 2)).toBe(false)
+    // Along the joining line above Ellie and Tom, the light stops short of Tom.
+    const busY = layout.positions.get('tom')!.y - 22
+    expect(segments.some((s) => s.points.some((p) => p.x === x('tom') && p.y === busY))).toBe(false)
+  })
+})
+

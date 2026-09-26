@@ -429,7 +429,10 @@ class GraphFamily(Schema):
     status: PartnerStatus
     partner_ids: list[uuid.UUID]
     children: list[GraphChild]
+    married: bool = False
+    """A marriage is recorded, with or without a date."""
     marriage: FuzzyDateOut | None = None
+    """The date of their first recorded marriage."""
 
 
 class TreeGraphOut(Schema):

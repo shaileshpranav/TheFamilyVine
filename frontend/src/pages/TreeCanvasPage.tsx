@@ -1,5 +1,5 @@
 import '@xyflow/react/dist/base.css'
-import { CornersOut, Crosshair, Minus, Plus } from '@phosphor-icons/react'
+import { CornersOut, Crosshair, Minus, Path, Plus } from '@phosphor-icons/react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   Background,
@@ -13,10 +13,11 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import type { Tree } from '../api/client'
-import { useCurrentTree, useSubtrees, useTreeGraph } from '../api/hooks'
+import { useCurrentTree, useKin, useSubtrees, useTreeGraph } from '../api/hooks'
 import LineKey from '../components/tree/LineKey'
 import LinesNode, { type LinesNodeType } from '../components/tree/LinesNode'
 import PersonNode, { type PersonNodeType } from '../components/tree/PersonNode'
+import RelatePanel, { type RelatePick } from '../components/tree/RelatePanel'
 import TreePanel, { type PanelMode } from '../components/tree/TreePanel'
 import TreeSearch from '../components/tree/TreeSearch'
 import { Empty, ErrorText } from '../components/ui'
@@ -28,8 +29,10 @@ import {
   type TreeLayout,
   type TreeLine,
   layoutTree,
+  pathSegments,
   treeLines,
 } from '../lib/treeLayout'
+import { relationToYou } from '../lib/relationship'
 
 const nodeTypes = { person: PersonNode, lines: LinesNode }
 
@@ -92,6 +95,7 @@ export default function TreeCanvasPage() {
         branch={branch}
         onBranchChange={setBranch}
         focusId={params.get('focus')}
+        relateId={params.get('relate')}
       />
     </ReactFlowProvider>
   )
@@ -103,12 +107,15 @@ function Canvas({
   branch,
   onBranchChange,
   focusId,
+  relateId,
 }: {
   tree: Tree
   view: View
   branch: string
   onBranchChange: (branch: string) => void
   focusId: string | null
+  /** Opened with ?relate=<id> (from a profile): "How are we related?" with that person. */
+  relateId: string | null
 }) {
   const { graph, layout, lines } = view
   const rf = useReactFlow()
@@ -123,6 +130,16 @@ function Canvas({
   const [ready, setReady] = useState(false)
   // Someone just added, to bring into view once they've been laid out.
   const pendingCentre = useRef<string | null>(null)
+  // "How are we related?" looks across everyone the viewer can see, whatever branch is shown.
+  const kin = useKin(tree.id)
+  const everyone = useTreeGraph(tree.id).data?.people ?? graph.people
+  const [relate, setRelate] = useState<RelatePick | null>(
+    relateId ? { from: meId && meId !== relateId ? meId : null, to: relateId } : null,
+  )
+  // A line between two people, lit on the canvas until cleared.
+  const [path, setPath] = useState<{ ids: string[]; summary: string } | null>(null)
+  const onPath = useMemo(() => (path ? pathSegments(lines, path.ids) : null), [lines, path])
+  const pendingPath = useRef<string[] | null>(null)
   // After switching branch, forget whoever and whatever isn't on screen any more.
   const shownSelected = selected && layout.positions.has(selected) ? selected : null
   const shownHover = hover && lines.some((l) => l.key === hover.key) ? hover : null
@@ -175,7 +192,15 @@ function Canvas({
     setSelected(null)
     setPanel(null)
     setHover(null)
+    setRelate(null)
   }, [])
+  const openRelate = useCallback(
+    (to: string | null) => {
+      setRelate({ from: meId && meId !== to ? meId : null, to })
+      setHover(null)
+    },
+    [meId],
+  )
 
   // Fit to the layout's own bounds (known before React Flow has measured the nodes), but never
   // beyond normal size, so a small tree or branch isn't blown up.
@@ -186,6 +211,43 @@ function Canvas({
     },
     [rf, layout, paneWidth, paneHeight],
   )
+
+  /** Frame a few people, such as a line between two of them, without zooming in too far. */
+  const frame = useCallback(
+    (ids: string[]) => {
+      const boxes = ids.map((id) => layout.positions.get(id)).filter((b) => b !== undefined)
+      if (!boxes.length) return
+      const x0 = Math.min(...boxes.map((b) => b.x))
+      const y0 = Math.min(...boxes.map((b) => b.y))
+      const w = Math.max(...boxes.map((b) => b.x + NODE_W)) - x0
+      const h = Math.max(...boxes.map((b) => b.y + NODE_H)) - y0
+      const zoom = Math.max(Math.min(paneWidth / (w * 1.3), paneHeight / (h * 1.5), 1), 0.15)
+      void rf.setCenter(x0 + w / 2, y0 + h / 2, { zoom, duration: 450 })
+    },
+    [layout, rf, paneWidth, paneHeight],
+  )
+  const showPath = useCallback(
+    (ids: string[], summary: string) => {
+      setRelate(null)
+      setPanel(null)
+      setSelected(null)
+      setPath({ ids, summary })
+      if (ids.every((id) => layout.positions.has(id))) frame(ids)
+      else {
+        // Someone on the line is outside the branch shown, so show the whole tree.
+        pendingPath.current = ids
+        onBranchChange('')
+      }
+    },
+    [layout, frame, onBranchChange],
+  )
+  useEffect(() => {
+    const ids = pendingPath.current
+    if (ids && ids.every((id) => layout.positions.has(id))) {
+      pendingPath.current = null
+      frame(ids)
+    }
+  }, [layout, frame])
 
   // First look at a tree or branch (once its layout has arrived): centre on the person asked
   // for, or on you, or fit everyone.
@@ -208,10 +270,14 @@ function Canvas({
   }, [layout, centre])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closePanel()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (relate || panel) closePanel()
+      else setPath(null)
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [closePanel])
+  }, [closePanel, relate, panel])
 
   const nodes = useMemo<(PersonNodeType | LinesNodeType)[]>(
     () => [
@@ -227,6 +293,7 @@ function Canvas({
           interactive,
           hover: shownHover,
           onHover: setHover,
+          path: onPath,
         },
         draggable: false,
         selectable: false,
@@ -244,6 +311,7 @@ function Canvas({
               person: p,
               isMe: p.id === meId,
               selected: p.id === shownSelected,
+              path: path ? (path.ids.includes(p.id) ? 'on' : 'off') : null,
               canAdd: tree.access.can_create_people,
               onSelect: selectOnCanvas,
               onAdd: addRelative,
@@ -254,12 +322,12 @@ function Canvas({
           }),
         ),
     ],
-    [graph, layout, lines, shownSelected, interactive, shownHover, meId, tree.access.can_create_people, selectOnCanvas, addRelative],
+    [graph, layout, lines, shownSelected, interactive, shownHover, onPath, path, meId, tree.access.can_create_people, selectOnCanvas, addRelative],
   )
 
   const allLabel = tree.access.tree_role ? 'Whole tree' : 'All your branches'
   return (
-    <div className={`canvas${shownSelected && panel ? ' has-panel' : ''}`}>
+    <div className={`canvas${relate || (shownSelected && panel) ? ' has-panel' : ''}`}>
       <ReactFlow
         nodes={nodes}
         nodeTypes={nodeTypes}
@@ -289,6 +357,16 @@ function Canvas({
           </p>
         </div>
         <div className="canvas-tools">
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm relate-open"
+            aria-label="How are we related?"
+            title="How are we related?"
+            onClick={() => openRelate(shownSelected)}
+          >
+            <Path size={15} />
+            <span>How are we related?</span>
+          </button>
           <TreeSearch
             people={graph.people}
             onPick={(id) => {
@@ -307,6 +385,17 @@ function Canvas({
             </select>
           )}
         </div>
+        {path && (
+          <div className="path-bar-row">
+            <p className="path-bar" role="status">
+              <Path size={15} />
+              <span>{path.summary}</span>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPath(null)}>
+                Clear
+              </button>
+            </p>
+          </div>
+        )}
       </div>
 
       {branch && graph.people.length === 0 && (
@@ -360,7 +449,17 @@ function Canvas({
         )}
       </div>
 
-      {shownSelected && panel && (
+      {relate ? (
+        <RelatePanel
+          kin={kin}
+          people={everyone}
+          meId={meId}
+          pick={relate}
+          onPick={setRelate}
+          onShow={showPath}
+          onClose={() => setRelate(null)}
+        />
+      ) : shownSelected && panel && (
         <TreePanel
           key={shownSelected}
           tree={tree}
@@ -368,6 +467,8 @@ function Canvas({
           mode={panel}
           onModeChange={setPanel}
           onClose={closePanel}
+          onRelate={openRelate}
+          relationLabel={meId && kin ? relationToYou(kin.relate(meId, shownSelected)) : null}
           onSelect={(id) => {
             select(id)
             centre(id)
