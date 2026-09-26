@@ -70,3 +70,26 @@ async def test_admin_links_member_account(api, family):
         f"/api/trees/{tid}/people/{family['dad']}/linked-user", {"user_id": kid_user["id"]}
     )
     assert r.status_code == 409
+
+
+async def test_planting_a_tree_with_yourself_and_both_parents(api):
+    """The "Plant your family tree" steps: a tree, yourself, then two parents in turn."""
+    me = api.as_(OWNER)
+    tree = (await me.post("/api/trees", {"name": "The Rao Family"})).json()
+    base = f"/api/trees/{tree['id']}/people"
+    you = await me.post(base, {"given_names": "Asha", "surname": "Rao", "is_me": True})
+    assert you.status_code == 201, you.text
+    you = you.json()
+    for given, sex in (("Meera", "female"), ("Vikram", "male")):
+        body = {"given_names": given, "surname": "Rao", "sex": sex}
+        body["relative"] = {"person_id": you["id"], "relation": "parent"}
+        r = await me.post(base, body)
+        assert r.status_code == 201, r.text
+
+    you = (await me.get(f"{base}/{you['id']}")).json()
+    assert len(you["parents"]) == 2
+    # The second parent joined the first, so they're a couple and the line comes from both.
+    graph = (await me.get(f"/api/trees/{tree['id']}/graph")).json()
+    [family] = graph["families"]
+    assert set(family["partner_ids"]) == set(you["parents"])
+    assert [c["person_id"] for c in family["children"]] == [you["id"]]

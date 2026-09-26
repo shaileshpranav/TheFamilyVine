@@ -94,3 +94,11 @@ export function zodiac(d?: FuzzyDate | null): string | null {
   const match = SIGNS.find(([, m, day]) => d.month! < m || (d.month === m && d.day! <= day))
   return match?.[0] ?? null
 }
+
+/** A typed-in year as a date: exact, or "about" when approximate. Blank or invalid is none. */
+export function yearDate(year: string, approximate = false): FuzzyDate | null {
+  const y = Number(year)
+  if (!year.trim() || !Number.isInteger(y) || y < 1) return null
+  return { qualifier: approximate ? 'about' : 'exact', year: y }
+}
+

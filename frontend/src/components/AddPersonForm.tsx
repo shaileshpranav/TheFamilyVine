@@ -2,17 +2,11 @@ import { useMutation } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { api, type Person, type PersonDetail, type Schemas, unwrap } from '../api/client'
 import { useInvalidateTree, usePeople, usePerson } from '../api/hooks'
+import { yearDate } from '../lib/dates'
 import { ADD_RELATION, type NewRelation, type PartnerStatus, STATUS_LABEL } from '../lib/genealogy'
 import PersonPicker from './PersonPicker'
 import { ErrorText, Field } from './ui'
 
-type FuzzyDate = Schemas['FuzzyDate']
-
-function yearDate(year: string, approximate: boolean): FuzzyDate | null {
-  const y = Number(year)
-  if (!year.trim() || !Number.isInteger(y) || y < 1) return null
-  return { qualifier: approximate ? 'about' : 'exact', year: y }
-}
 
 /**
  * Who they're connected through: the other parent of a child, or the parent, partner or

@@ -1,4 +1,4 @@
-import { Check, Copy, LinkSimple, Trash, UserPlus } from '@phosphor-icons/react'
+import { LinkSimple, Trash, UserPlus } from '@phosphor-icons/react'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api, ASSIGNABLE_ROLES, type Invite, type Member, ROLE_INFO, type Schemas, unwrap } from '../api/client'
@@ -11,8 +11,10 @@ import {
   usePeople,
   useSubtrees,
 } from '../api/hooks'
+import { CopyButton, InviteLink } from '../components/InviteLink'
 import { Avatar, ErrorText, Field, Label, Loading, PageHeader, Reveal, RoleBadge, YouTag } from '../components/ui'
 import { staggerIndex } from '../lib/format'
+import { inviteUrl } from '../lib/invites'
 
 type AssignableRole = (typeof ASSIGNABLE_ROLES)[number]
 
@@ -241,37 +243,6 @@ function InvitePanel({ onClose }: { onClose: () => void }) {
   )
 }
 
-function inviteUrl(invite: Invite) {
-  return `${window.location.origin}/invite/${invite.token}`
-}
-
-function CopyButton({ text, label = 'Copy link' }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <button
-      type="button"
-      className="btn btn-secondary btn-sm"
-      onClick={async () => {
-        await navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1600)
-      }}
-    >
-      {copied ? <Check size={14} /> : <Copy size={14} />}
-      {copied ? 'Copied' : label}
-    </button>
-  )
-}
-
-function InviteLink({ invite }: { invite: Invite }) {
-  const url = inviteUrl(invite)
-  return (
-    <div className="invite-link">
-      <code>{url}</code>
-      <CopyButton text={url} label="Copy" />
-    </div>
-  )
-}
 
 function PendingInvites() {
   const tree = useCurrentTree()

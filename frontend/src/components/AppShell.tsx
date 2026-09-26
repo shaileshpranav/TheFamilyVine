@@ -189,7 +189,7 @@ function TreeSwitcher({ current }: { current?: Tree }) {
           <Link to="/" role="menuitem" className="menu-item" onClick={close}>
             <SquaresFour size={15} /> All trees
           </Link>
-          <Link to="/?new=1" role="menuitem" className="menu-item" onClick={close}>
+          <Link to="/plant" role="menuitem" className="menu-item" onClick={close}>
             <Plus size={15} /> Start a new tree
           </Link>
         </div>
