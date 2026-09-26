@@ -62,6 +62,7 @@ async def tree_graph(
                 first.setdefault(event.family_id, event)
         for fam_out in families:
             if fam_out.id in first:
+                fam_out.married = True
                 fam_out.marriage = first[fam_out.id].date
 
     vitals = await load_vitals(db, tree_id, shown)

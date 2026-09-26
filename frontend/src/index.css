@@ -1653,10 +1653,42 @@ fieldset.field legend {
   left: 32px;
   right: 32px;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   pointer-events: none;
+}
+/* Short of room, the header's "How are we related?" button keeps just its icon. */
+@media (max-width: 1279px) {
+  .relate-open span {
+    display: none;
+  }
+}
+.path-bar-row {
+  flex: 0 0 100%;
+}
+.path-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 4px 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--heading);
+  font-size: 13px;
+}
+.path-bar > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.path-bar svg {
+  flex: none;
+  color: var(--muted);
 }
 .canvas-head > * {
   pointer-events: auto;
@@ -1885,6 +1917,14 @@ fieldset.field legend {
   stroke: var(--muted);
   stroke-width: 2;
 }
+.tree-line.path {
+  stroke: var(--heading);
+  stroke-width: 2.6;
+  pointer-events: none;
+}
+.tree-line.dim {
+  opacity: 0.25;
+}
 .tree-line.hot {
   stroke: var(--heading);
   stroke-width: 2.4;
@@ -1978,6 +2018,15 @@ fieldset.field legend {
     0 0 0 5px var(--heading);
   transform: scale(1.04);
 }
+/* A line between two people: those on it stand out, everyone else steps back. */
+.tree-node.path-on .tree-tile {
+  border-color: var(--heading);
+  box-shadow: 0 0 0 1px var(--heading);
+}
+.tree-node.path-off {
+  opacity: 0.32;
+  transition: opacity 200ms;
+}
 .tree-add {
   position: absolute;
   right: -9px;
@@ -2037,6 +2086,71 @@ fieldset.field legend {
     opacity: 0;
     transform: translateX(12px);
   }
+}
+.row-relation {
+  color: var(--text);
+}
+.relation-to-you {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.relate-panel header {
+  padding-right: 36px;
+}
+.relate-picks {
+  display: grid;
+  gap: 10px;
+}
+.relate-swap {
+  justify-self: start;
+  margin: -4px 0 -4px -8px;
+}
+.relate-result {
+  display: grid;
+  gap: 4px;
+  padding: 18px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  text-align: center;
+}
+.relate-lead {
+  font-size: 13px;
+  color: var(--muted);
+}
+.relate-title {
+  font-family: var(--font-serif);
+  font-size: 1.65rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--heading);
+}
+.relate-result.none .relate-title {
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+.relate-chain {
+  gap: 0;
+  margin-bottom: 16px;
+}
+.relate-chain li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+/* A short joining line between each person and the next. */
+.relate-chain li + li::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: -6px;
+  width: 2px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--line);
 }
 .tree-panel-close {
   position: absolute;

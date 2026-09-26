@@ -498,12 +498,14 @@ export function buildDataset(role: Role): Dataset {
       death: p.death,
     })),
     families: FAMILIES.map((f) => {
-      const married = (f.events ?? []).find((e) => e.type === 'marriage')?.date
+      const wedding = (f.events ?? []).find((e) => e.type === 'marriage')
+      const married = wedding?.date
       return {
         id: f.id,
         status: f.status,
         partner_ids: f.partners,
         children: f.children.map((c) => ({ person_id: c, relation: 'biological' as const })),
+        married: !!wedding,
         marriage: married ? fd(married) : null,
       }
     }),

@@ -196,6 +196,7 @@ export async function layoutTree(graph: TreeGraph, elk: ELK): Promise<TreeLayout
 export interface ChildPath {
   path: Point[]
   relation: ChildRelation
+  childId: string
 }
 
 export interface TreeLine {
@@ -304,7 +305,11 @@ export function treeLines(graph: TreeGraph, layout: TreeLayout): TreeLine[] {
       familyId: f.id,
       kind: 'children',
       paths,
-      childPaths: kids.map((c, i) => ({ path: [{ x: tops[i].x, y: busY }, tops[i]], relation: c.relation })),
+      childPaths: kids.map((c, i) => ({
+        path: [{ x: tops[i].x, y: busY }, tops[i]],
+        relation: c.relation,
+        childId: c.person_id,
+      })),
       status: f.status,
       marks: [],
       people: [...partners, ...kids.map((c) => c.person_id)],
@@ -383,3 +388,75 @@ function stepLines(
   }
   return lines
 }
+
+// ---- a line between two people -------------------------------------------------------------
+
+/** A piece of line to draw lit, styled like the line it lies along. */
+export interface LitSegment {
+  points: Point[]
+  /** Extra classes, such as "broken" for a separated couple or "rel-adopted" for a drop. */
+  style: string
+}
+
+/**
+ * Exactly the pieces of line a chain of people runs along, one step at a time: the line
+ * between partners, and from a parent down to one child (or across between siblings recorded
+ * without parents) only as far as that child, not along to the others.
+ */
+export function pathSegments(lines: TreeLine[], ids: string[]): LitSegment[] {
+  const out: LitSegment[] = []
+  for (let i = 1; i < ids.length; i++) {
+    const [a, b] = [ids[i - 1], ids[i]]
+    const couple = lines.find((l) => l.kind === 'couple' && l.people.includes(a) && l.people.includes(b))
+    if (couple) {
+      const style = couple.status === 'together' ? '' : ' broken'
+      couple.paths.forEach((points) => out.push({ points, style }))
+      couple.marks.forEach((points) => out.push({ points, style: '' }))
+      continue
+    }
+    for (const line of lines) {
+      if (line.kind !== 'children') continue
+      const drops = new Map(line.childPaths.map((c) => [c.childId, c]))
+      const parents = line.people.filter((p) => !drops.has(p))
+      const drop = (id: string) => {
+        const c = drops.get(id)!
+        out.push({ points: c.path, style: ` rel-${c.relation}` })
+        return c.path[0]
+      }
+      const across = (from: Point, to: Point) => {
+        if (from.x !== to.x) out.push({ points: [from, { x: to.x, y: from.y }], style: '' })
+      }
+      if ((parents.includes(a) && drops.has(b)) || (parents.includes(b) && drops.has(a))) {
+        // Along the couple's line from this parent to where the stem starts between them,
+        // down the stem, then across to this child only.
+        const parent = parents.includes(a) ? a : b
+        const stem = line.paths[0]
+        const couple = lines.find((l) => l.kind === 'couple' && parents.every((p) => l.people.includes(p)))
+        if (couple && parents.length === 2) {
+          const half = halfTowards(couple.paths[0], stem[0], parent === couple.people[0])
+          if (half) out.push({ points: half, style: couple.status === 'together' ? '' : ' broken' })
+        }
+        out.push({ points: stem, style: '' })
+        across(stem.at(-1)!, drop(drops.has(a) ? a : b))
+      } else if (!parents.length && drops.has(a) && drops.has(b)) {
+        across(drop(a), drop(b))
+      }
+    }
+  }
+  return out
+}
+
+/**
+ * The part of a couple's line from one partner's end to `mid`, the point between them where
+ * their children's stem begins. The line runs from the first partner to the second.
+ */
+function halfTowards(line: Point[], mid: Point, first: boolean): Point[] | null {
+  for (let i = 0; i + 1 < line.length; i++) {
+    const [p, q] = [line[i], line[i + 1]]
+    const onSegment =
+      p.y === q.y && mid.y === p.y && Math.min(p.x, q.x) <= mid.x && mid.x <= Math.max(p.x, q.x)
+    if (onSegment) return first ? [...line.slice(0, i + 1), mid] : [mid, ...line.slice(i + 1)]
+  }
+  return null
+}
+

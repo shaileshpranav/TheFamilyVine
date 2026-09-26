@@ -617,6 +617,11 @@ export interface components {
             partner_ids: string[];
             /** Children */
             children: components["schemas"]["GraphChild"][];
+            /**
+             * Married
+             * @default false
+             */
+            married: boolean;
             marriage: components["schemas"]["FuzzyDateOut"] | null;
         };
         /**
