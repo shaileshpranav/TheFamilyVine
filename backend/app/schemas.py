@@ -235,6 +235,9 @@ class RelativeLink(Schema):
     (step_sibling) the new person is connected through."""
     status: PartnerStatus = PartnerStatus.TOGETHER
     """partner / step_parent: whether the couple is together, separated or divorced."""
+    also_parent_of: list[uuid.UUID] = []
+    """partner: children of `person_id` with no other parent recorded (their
+    `only_parent_of`) who are the new partner's children too. They join the new couple."""
 
 
 class PersonCreate(PersonFields):
@@ -305,6 +308,10 @@ class RelativeOut(Schema):
     via_person_id: uuid.UUID | None = None
     can_edit_family: bool = False
     """Partners only: may the viewer change the couple's status and events?"""
+    can_make_parent: bool = False
+    """Step-parents and step-children only: can the step-parent be recorded as a parent
+    instead? True when their partner is the child's only recorded parent and the viewer may
+    edit that couple."""
 
 
 class TimelineItem(Schema):
@@ -329,12 +336,21 @@ class PersonDetailOut(PersonOut):
     parents: list[uuid.UUID]
     children: list[uuid.UUID]
     partners: list[uuid.UUID]
+    only_parent_of: list[uuid.UUID]
+    """Children with no other parent recorded. A new partner can be recorded as their other
+    parent (see RelativeLink.also_parent_of)."""
     relatives: list[RelativeOut]
     timeline: list[TimelineItem]
 
 
 class LinkUser(Schema):
     user_id: uuid.UUID | None
+
+
+class LinkParent(Schema):
+    person_id: uuid.UUID
+    """A step-parent to record as a parent. Their partner must be the child's only recorded
+    parent; the child then joins that couple."""
 
 
 # ---- events, families, places ------------------------------------------------------------
@@ -382,3 +398,40 @@ class FamilyOut(Schema):
 class PlaceOut(ORM):
     id: uuid.UUID
     name: str
+
+
+# ---- tree canvas ------------------------------------------------------------------------
+
+
+class GraphPerson(ORM):
+    """What the tree canvas needs to draw one person."""
+
+    id: uuid.UUID
+    display_name: str
+    given_names: str
+    surname: str
+    sex: Sex
+    is_living: bool
+    linked_user_id: uuid.UUID | None
+    birth: VitalOut | None = None
+    death: VitalOut | None = None
+
+
+class GraphChild(Schema):
+    person_id: uuid.UUID
+    relation: ChildRelation
+
+
+class GraphFamily(Schema):
+    """A couple (or single parent) and their children, as drawn on the canvas."""
+
+    id: uuid.UUID
+    status: PartnerStatus
+    partner_ids: list[uuid.UUID]
+    children: list[GraphChild]
+    marriage: FuzzyDateOut | None = None
+
+
+class TreeGraphOut(Schema):
+    people: list[GraphPerson]
+    families: list[GraphFamily]

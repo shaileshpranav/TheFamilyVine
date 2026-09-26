@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.config import Settings, get_settings
-from app.routers import events, invites, me, people, subtrees, trees
+from app.routers import events, graph, invites, me, people, subtrees, trees
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -36,7 +36,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # This port only serves the API; send stray browser visits to the web app.
         return RedirectResponse(settings.website_domain)
 
-    for module in (me, trees, invites, subtrees, people, events):
+    for module in (me, trees, invites, subtrees, people, events, graph):
         app.include_router(module.router)
     return app
 

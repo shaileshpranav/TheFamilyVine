@@ -129,6 +129,57 @@ function RelativeRow({
         </select>
       )}
       <ErrorText error={setStatus.error} />
+      <MakeParentButton treeId={treeId} person={person} relative={r} people={people} />
     </li>
+  )
+}
+
+/**
+ * Records a step-parent as a parent. It fixes the common mix-up of adding someone's other
+ * parent as their parent's partner. Shown on step-parent and step-child rows when possible.
+ */
+export function MakeParentButton({
+  treeId,
+  person,
+  relative: r,
+  people,
+}: {
+  treeId: string
+  person: PersonDetail
+  relative: RelativeOut
+  people: Map<string, Person>
+}) {
+  const invalidate = useInvalidateTree()
+  // On a step-child's row the page's person is the step-parent; otherwise they're the child.
+  const stepChild = r.relation === 'step_child'
+  const [childId, parentId] = stepChild ? [r.person_id, person.id] : [person.id, r.person_id]
+  const make = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.POST('/api/trees/{tree_id}/people/{person_id}/parents', {
+          params: { path: { tree_id: treeId, person_id: childId } },
+          body: { person_id: parentId },
+        }),
+      ),
+    onSuccess: () => invalidate(treeId),
+  })
+  if (!r.can_make_parent) return null
+
+  const name = (id: string) => (id === person.id ? person.display_name : people.get(id)?.display_name) ?? 'Unknown'
+  const [child, parent] = [name(childId), name(parentId)]
+  const couple = r.via_person_id ? ` ${child} will be shown as ${name(r.via_person_id)} and ${parent}’s child.` : ''
+  return (
+    <>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        aria-label={stepChild ? `Make ${child} ${parent}’s child` : `Make ${parent} ${child}’s parent`}
+        disabled={make.isPending}
+        onClick={() => confirm(`Record ${parent} as ${child}’s parent?${couple}`) && make.mutate()}
+      >
+        {stepChild ? 'Make child' : 'Make parent'}
+      </button>
+      <ErrorText error={make.error} />
+    </>
   )
 }

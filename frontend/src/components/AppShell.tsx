@@ -7,6 +7,7 @@ import {
   type Icon,
   Plus,
   SquaresFour,
+  TreeStructure,
   UserCircle,
   Users,
   UsersThree,
@@ -30,6 +31,7 @@ function treeNav(treeId: string): { main: NavItem[]; manage: NavItem[] } {
   return {
     main: [
       { to: base, label: 'Home', icon: House, end: true },
+      { to: `${base}/tree`, label: 'Tree', icon: TreeStructure },
       { to: `${base}/people`, label: 'People', icon: UsersThree },
     ],
     manage: [
@@ -42,6 +44,7 @@ function treeNav(treeId: string): { main: NavItem[]; manage: NavItem[] } {
 
 export default function AppShell() {
   const treeId = useMatch('/trees/:treeId/*')?.params.treeId
+  const onCanvas = !!useMatch('/trees/:treeId/tree')
   const { data: tree } = useTree(treeId)
   const { data: me } = useMe()
   const { pathname } = useLocation()
@@ -112,7 +115,7 @@ export default function AppShell() {
             )}
           </header>
           {/* Keyed by path so page state (e.g. an open edit form) resets when moving between people. */}
-          <main className="page" key={pathname}>
+          <main className={onCanvas ? 'page page-canvas' : 'page'} key={pathname}>
             <Outlet />
           </main>
         </div>
@@ -195,6 +198,7 @@ function TreeSwitcher({ current }: { current?: Tree }) {
 function TabBar({ treeId, youPath }: { treeId: string; youPath: string }) {
   const items: NavItem[] = [
     { to: `/trees/${treeId}`, label: 'Home', icon: House, end: true },
+    { to: `/trees/${treeId}/tree`, label: 'Tree', icon: TreeStructure },
     { to: `/trees/${treeId}/people`, label: 'People', icon: UsersThree },
     { to: youPath, label: 'You', icon: UserCircle },
   ]
