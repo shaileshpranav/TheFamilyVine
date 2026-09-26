@@ -287,7 +287,7 @@ export interface paths {
         patch: operations["update_person_api_trees__tree_id__people__person_id__patch"];
         trace?: never;
     };
-    "/api/trees/{tree_id}/people/{person_id}/parents": {
+    "/api/trees/{tree_id}/people/{person_id}/relatives": {
         parameters: {
             query?: never;
             header?: never;
@@ -297,15 +297,35 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Add Parent
-         * @description Record a step-parent as one of this person's parents.
+         * Connect Relative
+         * @description Connect this person, already on the tree, to `body.person_id`.
          *
-         *     This fixes the common mix-up of adding someone's other parent as their parent's partner.
-         *     The person moves out of the family where that partner raises them alone and into the
-         *     couple's family, keeping how they're related (biological, adopted…).
+         *     It works exactly like adding someone new with `relative`: {"person_id": X, "relation":
+         *     "child"} records them as X's child. That also covers turning a step-parent into a parent.
          */
-        post: operations["add_parent_api_trees__tree_id__people__person_id__parents_post"];
+        post: operations["connect_relative_api_trees__tree_id__people__person_id__relatives_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/people/{person_id}/relatives/{relative_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect Relative
+         * @description Remove a direct link: a parent, a child, a partner with no children together, or a
+         *     sibling recorded without parents. Nobody is deleted.
+         */
+        delete: operations["disconnect_relative_api_trees__tree_id__people__person_id__relatives__relative_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -687,14 +707,6 @@ export interface components {
             person_name: string | null;
             /** Usable */
             usable: boolean;
-        };
-        /** LinkParent */
-        LinkParent: {
-            /**
-             * Person Id
-             * Format: uuid
-             */
-            person_id: string;
         };
         /** LinkUser */
         LinkUser: {
@@ -1079,7 +1091,10 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** RelativeLink */
+        /**
+         * RelativeLink
+         * @description How a person, new or already on the tree, is connected to `person_id`.
+         */
         RelativeLink: {
             /**
              * Person Id
@@ -1136,6 +1151,11 @@ export interface components {
              * @default false
              */
             can_make_parent: boolean;
+            /**
+             * Can Unlink
+             * @default false
+             */
+            can_unlink: boolean;
         };
         /**
          * Role
@@ -2256,7 +2276,7 @@ export interface operations {
             };
         };
     };
-    add_parent_api_trees__tree_id__people__person_id__parents_post: {
+    connect_relative_api_trees__tree_id__people__person_id__relatives_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2268,9 +2288,42 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LinkParent"];
+                "application/json": components["schemas"]["RelativeLink"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disconnect_relative_api_trees__tree_id__people__person_id__relatives__relative_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                person_id: string;
+                relative_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

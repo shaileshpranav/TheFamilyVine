@@ -223,21 +223,24 @@ RelationKind = Literal[
 
 
 class RelativeLink(Schema):
+    """How a person, new or already on the tree, is connected to `person_id`."""
+
     person_id: uuid.UUID
     relation: RelationKind
-    """How the NEW person relates to `person_id` (e.g. "child" = new person is their child)."""
+    """How the person relates to `person_id` (e.g. "child" = they're person_id's child)."""
     family_id: uuid.UUID | None = None
-    """child: which of the parent's unions; sibling: which set of parents they share."""
+    """child: which of the parent's couples the child joins; parent / sibling: which set of
+    parents, when there's more than one."""
     new_family: bool = False
     """child: the other parent isn't recorded, so start a new single-parent family."""
     via_person_id: uuid.UUID | None = None
     """Step relations: the parent (step_parent), partner (step_child) or step-parent
-    (step_sibling) the new person is connected through."""
+    (step_sibling) they're connected through."""
     status: PartnerStatus = PartnerStatus.TOGETHER
     """partner / step_parent: whether the couple is together, separated or divorced."""
     also_parent_of: list[uuid.UUID] = []
-    """partner: children of `person_id` with no other parent recorded (their
-    `only_parent_of`) who are the new partner's children too. They join the new couple."""
+    """partner: children with only one of the two recorded as a parent (their
+    `only_parent_of`) who are both of theirs. They join the new couple."""
 
 
 class PersonCreate(PersonFields):
@@ -311,7 +314,10 @@ class RelativeOut(Schema):
     can_make_parent: bool = False
     """Step-parents and step-children only: can the step-parent be recorded as a parent
     instead? True when their partner is the child's only recorded parent and the viewer may
-    edit that couple."""
+    connect them."""
+    can_unlink: bool = False
+    """May the viewer remove this link? Only direct links can be removed: parents, children,
+    partners with no children together, and siblings recorded without parents."""
 
 
 class TimelineItem(Schema):
@@ -345,12 +351,6 @@ class PersonDetailOut(PersonOut):
 
 class LinkUser(Schema):
     user_id: uuid.UUID | None
-
-
-class LinkParent(Schema):
-    person_id: uuid.UUID
-    """A step-parent to record as a parent. Their partner must be the child's only recorded
-    parent; the child then joins that couple."""
 
 
 # ---- events, families, places ------------------------------------------------------------
