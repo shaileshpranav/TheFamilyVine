@@ -4,6 +4,7 @@
  * stays in step with the real responses. Relatives and timelines are derived here the same
  * way the API derives them (app/kinship.py, app/timeline.py), in simplified form.
  */
+import { DEFAULT_PREFERENCES } from '../lib/preferences'
 import type { Role, Schemas } from '../api/client'
 import { dateLabel, dateShort } from '../lib/dates'
 
@@ -42,15 +43,16 @@ const ME: Schemas['UserOut'] = {
   email: 'ellie.hollis@example.com',
   display_name: 'Ellie Hollis',
   avatar_url: null,
+  preferences: DEFAULT_PREFERENCES,
 }
 
 const USERS: Record<string, Schemas['UserOut']> = {
   ellie: ME,
-  margaret: { id: 'u-margaret', email: 'margaret.hollis@example.com', display_name: 'Margaret Hollis', avatar_url: null },
-  tom: { id: 'u-tom', email: 'tom.hollis@example.com', display_name: 'Tom Hollis', avatar_url: null },
-  grace: { id: 'u-grace', email: 'grace.lane@example.com', display_name: 'Grace Lane', avatar_url: null },
-  marco: { id: 'u-marco', email: 'marco.russo@example.com', display_name: 'Marco Russo', avatar_url: null },
-  priya: { id: 'u-priya', email: 'priya.raman@example.com', display_name: 'Priya Raman', avatar_url: null },
+  margaret: { id: 'u-margaret', email: 'margaret.hollis@example.com', display_name: 'Margaret Hollis', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  tom: { id: 'u-tom', email: 'tom.hollis@example.com', display_name: 'Tom Hollis', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  grace: { id: 'u-grace', email: 'grace.lane@example.com', display_name: 'Grace Lane', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  marco: { id: 'u-marco', email: 'marco.russo@example.com', display_name: 'Marco Russo', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  priya: { id: 'u-priya', email: 'priya.raman@example.com', display_name: 'Priya Raman', avatar_url: null, preferences: DEFAULT_PREFERENCES },
 }
 
 interface SeedEvent {

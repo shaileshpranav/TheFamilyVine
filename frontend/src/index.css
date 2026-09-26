@@ -44,41 +44,40 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --canvas: #191918;
-    --surface: #1f1f1e;
-    --surface-2: #1c1c1b;
-    --hover: #292928;
-    --border: #2f2f2d;
-    --border-strong: #3f3f3c;
-    --text: #d9d8d4;
-    --heading: #f3f2ee;
-    --muted: #9b9a96;
-    --faint: #6f6e6a;
-    --primary: #ededea;
-    --primary-hover: #d6d5d1;
-    --on-primary: #111111;
-    --ring: rgba(237, 237, 234, 0.12);
-    --lift: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --ambient: rgba(214, 170, 120, 1);
-    --line: #4d4b46;
-    --line-step: #6f8f69;
-    --canvas-dots: rgba(255, 255, 255, 0.08);
+/* Dark mode, chosen in Settings or following the system (see index.html). */
+:root[data-theme='dark'] {
+  --canvas: #191918;
+  --surface: #1f1f1e;
+  --surface-2: #1c1c1b;
+  --hover: #292928;
+  --border: #2f2f2d;
+  --border-strong: #3f3f3c;
+  --text: #d9d8d4;
+  --heading: #f3f2ee;
+  --muted: #9b9a96;
+  --faint: #6f6e6a;
+  --primary: #ededea;
+  --primary-hover: #d6d5d1;
+  --on-primary: #111111;
+  --ring: rgba(237, 237, 234, 0.12);
+  --lift: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --ambient: rgba(214, 170, 120, 1);
+  --line: #4d4b46;
+  --line-step: #6f8f69;
+  --canvas-dots: rgba(255, 255, 255, 0.08);
 
-    --red-bg: rgba(229, 83, 75, 0.16);
-    --red: #f0a19c;
-    --blue-bg: rgba(64, 156, 222, 0.16);
-    --blue: #8cc6ef;
-    --green-bg: rgba(88, 160, 96, 0.16);
-    --green: #9fd1a3;
-    --yellow-bg: rgba(214, 160, 40, 0.16);
-    --yellow: #e7c46f;
-    --gray-bg: rgba(255, 255, 255, 0.07);
-    --gray: #b3b2ae;
+  --red-bg: rgba(229, 83, 75, 0.16);
+  --red: #f0a19c;
+  --blue-bg: rgba(64, 156, 222, 0.16);
+  --blue: #8cc6ef;
+  --green-bg: rgba(88, 160, 96, 0.16);
+  --green: #9fd1a3;
+  --yellow-bg: rgba(214, 160, 40, 0.16);
+  --yellow: #e7c46f;
+  --gray-bg: rgba(255, 255, 255, 0.07);
+  --gray: #b3b2ae;
 
-    color-scheme: dark;
-  }
+  color-scheme: dark;
 }
 
 /* ---- base ---------------------------------------------------------------------------- */
@@ -92,13 +91,17 @@
 html {
   -webkit-text-size-adjust: 100%;
 }
+/* Settings › Text size › Larger. Type is sized in rem, so this scales all of it. */
+html[data-text='large'] {
+  font-size: 112.5%;
+}
 
 body {
   margin: 0;
   background: var(--canvas);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -151,11 +154,11 @@ a:hover {
   color: var(--muted);
 }
 .small {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .mono {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   letter-spacing: -0.01em;
 }
 .grow {
@@ -230,7 +233,7 @@ a:hover {
   color: var(--heading);
   text-decoration: none;
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 1.125rem;
   letter-spacing: -0.01em;
 }
 .brand img {
@@ -239,7 +242,7 @@ a:hover {
 .side-section {
   margin: 20px 10px 6px;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--faint);
@@ -252,7 +255,7 @@ a:hover {
   border-radius: var(--radius-sm);
   color: var(--text);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 0.875rem;
   transition: background 150ms;
 }
 .side-link svg {
@@ -293,7 +296,7 @@ a:hover {
   box-shadow: 0 0 0 1px var(--border);
 }
 .side-user-name {
-  font-size: 13.5px;
+  font-size: 0.84375rem;
   font-weight: 500;
   color: var(--heading);
   line-height: 1.3;
@@ -302,7 +305,7 @@ a:hover {
   white-space: nowrap;
 }
 .side-user-sub {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
   line-height: 1.3;
 }
@@ -321,7 +324,7 @@ a:hover {
   background: var(--surface);
   color: var(--heading);
   font: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
@@ -368,7 +371,7 @@ a:hover {
   border-radius: var(--radius-sm);
   color: var(--text);
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 0.84375rem;
 }
 .menu-item:hover {
   background: var(--hover);
@@ -427,7 +430,7 @@ a:hover {
     color: var(--heading);
     text-decoration: none;
     font-family: var(--font-serif);
-    font-size: 17px;
+    font-size: 1.0625rem;
   }
   .topbar-title span {
     overflow: hidden;
@@ -461,7 +464,7 @@ a:hover {
     border-radius: var(--radius);
     color: var(--faint);
     text-decoration: none;
-    font-size: 11px;
+    font-size: 0.6875rem;
     font-weight: 500;
   }
   .tab-item.active {
@@ -482,7 +485,7 @@ a:hover {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   color: var(--muted);
 }
 @media (max-width: 899px) {
@@ -513,7 +516,7 @@ body:has(.preview-badge) :is(.canvas-controls, .canvas-foot) {
   gap: 8px;
   margin: 0 0 14px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 0.71875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -521,7 +524,7 @@ body:has(.preview-badge) :is(.canvas-controls, .canvas-foot) {
 .lede {
   margin-top: 14px;
   max-width: 62ch;
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--muted);
 }
 .page-actions {
@@ -537,7 +540,7 @@ body:has(.preview-badge) :is(.canvas-controls, .canvas-foot) {
   margin-bottom: 28px;
   color: var(--muted);
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 0.84375rem;
 }
 .back:hover {
   color: var(--heading);
@@ -559,7 +562,7 @@ body:has(.preview-badge) :is(.canvas-controls, .canvas-foot) {
   gap: 8px;
   margin: 0 0 16px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -632,7 +635,7 @@ body:has(.preview-badge) :is(.canvas-controls, .canvas-foot) {
   align-items: center;
   gap: 6px;
   margin-top: 20px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 .card-link:hover .card-foot {
@@ -716,7 +719,7 @@ button.row:hover {
 }
 .row-sub {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
   line-height: 1.4;
 }
@@ -775,20 +778,20 @@ a.row:hover .row-caret {
   background: var(--surface-2);
   color: var(--heading);
   font-family: var(--font-serif);
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1;
 }
 .avatar-sm {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .avatar-lg {
   width: 76px;
   height: 76px;
   border-radius: 16px;
-  font-size: 32px;
+  font-size: 2rem;
 }
 .avatar-me {
   background: var(--primary);
@@ -810,7 +813,7 @@ a.row:hover .row-caret {
   border-radius: 9999px;
   background: var(--gray-bg);
   color: var(--gray);
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -853,7 +856,7 @@ a.row:hover .row-caret {
   background: var(--primary);
   color: var(--on-primary);
   font: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
@@ -909,7 +912,7 @@ a.row:hover .row-caret {
 .btn-sm {
   height: 30px;
   padding: 0 10px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   gap: 6px;
 }
 .btn-icon {
@@ -950,12 +953,12 @@ a.row:hover .row-caret {
   align-content: start;
 }
 .field-label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--heading);
 }
 .field-hint {
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   color: var(--muted);
   line-height: 1.45;
 }
@@ -971,7 +974,7 @@ textarea {
   background: var(--surface);
   color: var(--heading);
   font: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   transition:
     border-color 150ms,
     box-shadow 150ms;
@@ -1024,7 +1027,7 @@ input[type='checkbox'] {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
 }
 .search {
@@ -1060,7 +1063,7 @@ input[type='checkbox'] {
   border-radius: var(--radius);
   background: var(--red-bg);
   color: var(--red);
-  font-size: 13.5px;
+  font-size: 0.84375rem;
   line-height: 1.45;
 }
 .error svg {
@@ -1072,7 +1075,7 @@ input[type='checkbox'] {
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: 13.5px;
+  font-size: 0.84375rem;
 }
 .note svg {
   flex: none;
@@ -1125,7 +1128,7 @@ input[type='checkbox'] {
 }
 .empty-text {
   max-width: 44ch;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--muted);
 }
 .empty .actions {
@@ -1155,7 +1158,7 @@ input[type='checkbox'] {
 }
 .native-name {
   margin-top: 8px;
-  font-size: 18px;
+  font-size: 1.125rem;
   color: var(--text);
 }
 .person-meta {
@@ -1164,7 +1167,7 @@ input[type='checkbox'] {
   align-items: center;
   gap: 8px;
   margin-top: 12px;
-  font-size: 13.5px;
+  font-size: 0.84375rem;
   color: var(--muted);
 }
 .relatives {
@@ -1182,7 +1185,7 @@ input[type='checkbox'] {
   .avatar-lg {
     width: 60px;
     height: 60px;
-    font-size: 26px;
+    font-size: 1.625rem;
   }
 }
 .rel-link {
@@ -1191,7 +1194,7 @@ input[type='checkbox'] {
   gap: 10px;
   color: var(--heading);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 .rel-link:hover span {
@@ -1215,7 +1218,7 @@ input[type='checkbox'] {
   min-width: 0;
   overflow-wrap: anywhere;
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   color: var(--heading);
 }
 .row select {
@@ -1223,7 +1226,7 @@ input[type='checkbox'] {
   min-height: 32px;
   padding-top: 5px;
   padding-bottom: 5px;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .danger-zone {
@@ -1233,7 +1236,7 @@ input[type='checkbox'] {
 /* ---- profile ------------------------------------------------------------------------ */
 
 .about-text {
-  font-size: 16px;
+  font-size: 1rem;
   max-width: 68ch;
 }
 .facts {
@@ -1243,7 +1246,7 @@ input[type='checkbox'] {
 }
 .facts dt {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1251,7 +1254,7 @@ input[type='checkbox'] {
 .facts dd {
   margin: 2px 0 0;
   color: var(--heading);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -1273,7 +1276,7 @@ input[type='checkbox'] {
   border-radius: var(--radius-sm);
   background: var(--surface-2);
   color: var(--heading);
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-decoration: none;
   transition: border-color 150ms, background 150ms;
 }
@@ -1282,7 +1285,7 @@ input[type='checkbox'] {
   background: var(--hover);
 }
 .chip .muted {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .tiles {
@@ -1306,14 +1309,14 @@ input[type='checkbox'] {
   align-items: center;
   gap: 6px;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .tile-value {
   color: var(--heading);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.35;
 }
@@ -1333,7 +1336,7 @@ input[type='checkbox'] {
 }
 .pet-name {
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--heading);
 }
 
@@ -1380,7 +1383,7 @@ input[type='checkbox'] {
 }
 .family-group-label {
   margin: 0 0 10px;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   font-weight: 500;
   color: var(--muted);
 }
@@ -1402,7 +1405,7 @@ input[type='checkbox'] {
 .rel-sub {
   display: block;
   margin-top: 1px;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
   font-weight: 400;
   color: var(--muted);
 }
@@ -1410,7 +1413,7 @@ input[type='checkbox'] {
   width: auto;
   min-height: 30px;
   padding: 4px 30px 4px 10px;
-  font-size: 12.5px;
+  font-size: 0.78125rem;
 }
 
 .relation-groups {
@@ -1465,12 +1468,12 @@ input[type='checkbox'] {
   display: block;
   color: var(--heading);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .relation-hint {
   display: block;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 0.78125rem;
 }
 
 /* ---- timeline ----------------------------------------------------------------------- */
@@ -1507,7 +1510,7 @@ input[type='checkbox'] {
 }
 .tl-desc {
   margin-top: 4px;
-  font-size: 13.5px;
+  font-size: 0.84375rem;
   color: var(--text);
 }
 .timeline > li:not(.tl-row) {
@@ -1535,7 +1538,7 @@ input[type='checkbox'] {
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   cursor: pointer;
 }
 .seg-opt:hover {
@@ -1545,6 +1548,28 @@ input[type='checkbox'] {
   background: var(--surface);
   color: var(--heading);
   box-shadow: 0 0 0 1px var(--border);
+}
+
+/* ---- settings ------------------------------------------------------------------------ */
+
+.settings {
+  display: grid;
+}
+.setting {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+}
+.setting:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.setting-label {
+  font-weight: 500;
+  color: var(--heading);
 }
 
 /* ---- form pieces -------------------------------------------------------------------- */
@@ -1598,7 +1623,7 @@ fieldset.field legend {
   margin-top: 8px;
 }
 .date-and {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
   padding-left: 4px;
 }
@@ -1640,7 +1665,7 @@ fieldset.field legend {
 }
 .react-flow__attribution {
   background: transparent !important;
-  font-size: 10px;
+  font-size: 0.625rem;
 }
 .react-flow__attribution a {
   color: var(--faint) !important;
@@ -1678,7 +1703,7 @@ fieldset.field legend {
   border-radius: 9999px;
   background: var(--surface);
   color: var(--heading);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .path-bar > span {
   min-width: 0;
@@ -1693,8 +1718,9 @@ fieldset.field legend {
 .canvas-head > * {
   pointer-events: auto;
 }
+/* The title keeps room for the tree's name; short of that, the tools wrap below it. */
 .canvas-title {
-  flex: 1;
+  flex: 1 1 280px;
   min-width: 0;
 }
 .canvas-title .kicker {
@@ -1711,7 +1737,7 @@ fieldset.field legend {
 }
 .canvas-hint {
   margin-top: 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 .canvas-tools {
@@ -1809,7 +1835,7 @@ fieldset.field legend {
   background: var(--surface);
   color: var(--heading);
   font: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
 }
@@ -1859,13 +1885,13 @@ fieldset.field legend {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text);
 }
 .line-key-group {
   margin: 0 0 4px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1946,7 +1972,7 @@ fieldset.field legend {
   border-radius: var(--radius);
   background: var(--primary);
   color: var(--on-primary);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.35;
   text-align: center;
   white-space: nowrap;
@@ -1956,7 +1982,7 @@ fieldset.field legend {
 .tree-tip strong {
   display: block;
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 .tree-tip span {
@@ -1989,7 +2015,7 @@ fieldset.field legend {
   background: var(--surface);
   color: var(--heading);
   font-family: var(--font-serif);
-  font-size: 22px;
+  font-size: 1.375rem;
   cursor: pointer;
   transition:
     box-shadow 180ms var(--ease-out),
@@ -2049,7 +2075,7 @@ fieldset.field legend {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   color: var(--heading);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.25;
   text-align: center;
@@ -2058,7 +2084,7 @@ fieldset.field legend {
   margin-top: 3px;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .tree-panel {
@@ -2092,7 +2118,7 @@ fieldset.field legend {
 }
 .relation-to-you {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 .relate-panel header {
@@ -2116,7 +2142,7 @@ fieldset.field legend {
   text-align: center;
 }
 .relate-lead {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 .relate-title {
@@ -2166,7 +2192,7 @@ fieldset.field legend {
 .tree-panel-head .avatar-lg {
   width: 64px;
   height: 64px;
-  font-size: 26px;
+  font-size: 1.625rem;
 }
 .tree-panel-name {
   font-size: 1.45rem;
@@ -2176,7 +2202,7 @@ fieldset.field legend {
   overflow: hidden;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .tree-panel-section {
   padding-top: 16px;

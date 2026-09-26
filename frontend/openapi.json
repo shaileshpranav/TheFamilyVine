@@ -3729,6 +3729,99 @@
         ],
         "title": "PlaceOut"
       },
+      "Preferences": {
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "system",
+              "light",
+              "dark"
+            ],
+            "title": "Theme",
+            "default": "system"
+          },
+          "text_size": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "large"
+            ],
+            "title": "Text Size",
+            "default": "normal"
+          },
+          "start_page": {
+            "type": "string",
+            "enum": [
+              "home",
+              "tree"
+            ],
+            "title": "Start Page",
+            "default": "home"
+          }
+        },
+        "type": "object",
+        "required": [
+          "theme",
+          "text_size",
+          "start_page"
+        ],
+        "title": "Preferences",
+        "description": "App settings, saved to the account so they follow the user between devices."
+      },
+      "PreferencesUpdate": {
+        "properties": {
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "system",
+                  "light",
+                  "dark"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          },
+          "text_size": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "large"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Size"
+          },
+          "start_page": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "home",
+                  "tree"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Page"
+          }
+        },
+        "type": "object",
+        "title": "PreferencesUpdate",
+        "description": "Only the settings given change."
+      },
       "RelativeLink": {
         "properties": {
           "person_id": {
@@ -4463,6 +4556,9 @@
               }
             ],
             "title": "Avatar Url"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
           }
         },
         "type": "object",
@@ -4470,7 +4566,8 @@
           "id",
           "email",
           "display_name",
-          "avatar_url"
+          "avatar_url",
+          "preferences"
         ],
         "title": "UserOut"
       },
@@ -4499,6 +4596,16 @@
               }
             ],
             "title": "Avatar Url"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreferencesUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",

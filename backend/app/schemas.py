@@ -24,16 +24,41 @@ class ORM(Schema):
 # ---- users --------------------------------------------------------------------------------
 
 
+Theme = Literal["system", "light", "dark"]
+TextSize = Literal["normal", "large"]
+StartPage = Literal["home", "tree"]
+
+
+class Preferences(Schema):
+    """App settings, saved to the account so they follow the user between devices."""
+
+    theme: Theme = "system"
+    """"system" follows the device's light or dark setting."""
+    text_size: TextSize = "normal"
+    start_page: StartPage = "home"
+    """Where opening a tree lands: its home page, or straight on the tree canvas."""
+
+
+class PreferencesUpdate(Schema):
+    """Only the settings given change."""
+
+    theme: Theme | None = None
+    text_size: TextSize | None = None
+    start_page: StartPage | None = None
+
+
 class UserOut(ORM):
     id: uuid.UUID
     email: str
     display_name: str
     avatar_url: str | None
+    preferences: Preferences
 
 
 class UserUpdate(Schema):
     display_name: str | None = Field(None, max_length=200)
     avatar_url: str | None = Field(None, max_length=1000)
+    preferences: PreferencesUpdate | None = None
 
 
 # ---- trees --------------------------------------------------------------------------------
