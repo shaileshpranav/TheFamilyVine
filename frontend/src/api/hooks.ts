@@ -142,3 +142,30 @@ export function useTreeGraph(treeId: string, subtreeId?: string) {
     placeholderData: keepPreviousData,
   })
 }
+
+export function usePersonPhotos(treeId: string, personId: string) {
+  return useQuery({
+    queryKey: ['tree', treeId, 'photos', personId],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/trees/{tree_id}/people/{person_id}/photos', {
+          params: { path: { tree_id: treeId, person_id: personId } },
+        }),
+      ),
+  })
+}
+
+/** Health, for people the viewer may see it for (the person and their blood relatives). */
+export function useConditions(treeId: string, personId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['tree', treeId, 'conditions', personId],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/trees/{tree_id}/people/{person_id}/conditions', {
+          params: { path: { tree_id: treeId, person_id: personId } },
+        }),
+      ),
+    enabled,
+  })
+}
+

@@ -454,15 +454,221 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trees/{tree_id}/people/{person_id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Photos */
+        get: operations["list_photos_api_trees__tree_id__people__person_id__photos_get"];
+        put?: never;
+        /**
+         * Upload Photo
+         * @description Add a photo to someone's gallery. Their first becomes their profile picture.
+         */
+        post: operations["upload_photo_api_trees__tree_id__people__person_id__photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/people/{person_id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Profile Photo */
+        put: operations["set_profile_photo_api_trees__tree_id__people__person_id__photo_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/photos/{photo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Photo */
+        delete: operations["delete_photo_api_trees__tree_id__photos__photo_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Photo */
+        patch: operations["update_photo_api_trees__tree_id__photos__photo_id__patch"];
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/photos/{photo_id}/{size}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Photo File
+         * @description The image, as WebP: `thumb` (up to 480px) or `full` (up to 2048px).
+         */
+        get: operations["photo_file_api_trees__tree_id__photos__photo_id___size__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Cover
+         * @description Replace the tree's cover photo (admins).
+         */
+        put: operations["set_cover_api_trees__tree_id__cover_put"];
+        post?: never;
+        /** Remove Cover */
+        delete: operations["remove_cover_api_trees__tree_id__cover_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/people/{person_id}/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Conditions
+         * @description Their recorded conditions, and what close blood relatives have recorded.
+         */
+        get: operations["list_conditions_api_trees__tree_id__people__person_id__conditions_get"];
+        put?: never;
+        /** Add Condition */
+        post: operations["add_condition_api_trees__tree_id__people__person_id__conditions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trees/{tree_id}/conditions/{condition_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Condition */
+        delete: operations["delete_condition_api_trees__tree_id__conditions__condition_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Condition */
+        patch: operations["update_condition_api_trees__tree_id__conditions__condition_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Body_set_cover_api_trees__tree_id__cover_put */
+        Body_set_cover_api_trees__tree_id__cover_put: {
+            /** File */
+            file: string;
+        };
+        /** Body_upload_photo_api_trees__tree_id__people__person_id__photos_post */
+        Body_upload_photo_api_trees__tree_id__people__person_id__photos_post: {
+            /** File */
+            file: string;
+            /**
+             * Caption
+             * @default
+             */
+            caption?: string;
+        };
         /**
          * ChildRelation
          * @enum {string}
          */
         ChildRelation: "biological" | "adopted" | "step" | "foster";
+        /** ConditionIn */
+        ConditionIn: {
+            /** Name */
+            name: string;
+            status: components["schemas"]["ConditionStatus"];
+            /** Year */
+            year?: number | null;
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+        };
+        /** ConditionOut */
+        ConditionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Name */
+            name: string;
+            status: components["schemas"]["ConditionStatus"];
+            /** Year */
+            year: number | null;
+            /** Note */
+            note: string;
+        };
+        /**
+         * ConditionStatus
+         * @enum {string}
+         */
+        ConditionStatus: "diagnosed" | "carrier" | "watch" | "untested";
+        /** ConditionUpdate */
+        ConditionUpdate: {
+            /** Name */
+            name?: string | null;
+            status?: components["schemas"]["ConditionStatus"] | null;
+            /** Year */
+            year?: number | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** ConditionsOut */
+        ConditionsOut: {
+            /** Recorded */
+            recorded: components["schemas"]["ConditionOut"][];
+            /** Inherited */
+            inherited: components["schemas"]["InheritedConditionOut"][];
+        };
         /**
          * DateQualifier
          * @enum {string}
@@ -643,6 +849,8 @@ export interface components {
             sex: components["schemas"]["Sex"];
             /** Is Living */
             is_living: boolean;
+            /** Photo Id */
+            photo_id: string | null;
             /** Linked User Id */
             linked_user_id: string | null;
             birth: components["schemas"]["VitalOut"] | null;
@@ -652,6 +860,26 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * InheritedConditionOut
+         * @description Something a close blood relative has recorded: worth keeping an eye on.
+         */
+        InheritedConditionOut: {
+            /** Name */
+            name: string;
+            status: components["schemas"]["ConditionStatus"];
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Via */
+            via: string[];
+            /** Generations */
+            generations: number;
+            /** Others */
+            others: number;
         };
         /** InviteAccepted */
         InviteAccepted: {
@@ -921,6 +1149,8 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /** Photo Id */
+            photo_id: string | null;
             birth: components["schemas"]["VitalOut"] | null;
             death: components["schemas"]["VitalOut"] | null;
             permissions: components["schemas"]["PersonPermissions"];
@@ -1020,6 +1250,8 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /** Photo Id */
+            photo_id: string | null;
             birth: components["schemas"]["VitalOut"] | null;
             death: components["schemas"]["VitalOut"] | null;
         };
@@ -1033,6 +1265,10 @@ export interface components {
             can_delete: boolean;
             /** Can Add Relatives */
             can_add_relatives: boolean;
+            /** Can View Conditions */
+            can_view_conditions: boolean;
+            /** Can Edit Conditions */
+            can_edit_conditions: boolean;
         };
         /** PersonUpdate */
         PersonUpdate: {
@@ -1086,6 +1322,40 @@ export interface components {
              */
             kind: string;
         };
+        /**
+         * PhotoOut
+         * @description A photo. The image is at /api/trees/{tree_id}/photos/{id}/thumb or /full.
+         */
+        PhotoOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Tree Id
+             * Format: uuid
+             */
+            tree_id: string;
+            /** Person Id */
+            person_id: string | null;
+            /** Caption */
+            caption: string;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** PhotoUpdate */
+        PhotoUpdate: {
+            /** Caption */
+            caption: string;
+        };
         /** PlaceOut */
         PlaceOut: {
             /**
@@ -1095,6 +1365,47 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+        };
+        /**
+         * Preferences
+         * @description App settings, saved to the account so they follow the user between devices.
+         */
+        Preferences: {
+            /**
+             * Theme
+             * @default system
+             * @enum {string}
+             */
+            theme: "system" | "light" | "dark";
+            /**
+             * Text Size
+             * @default normal
+             * @enum {string}
+             */
+            text_size: "normal" | "large";
+            /**
+             * Start Page
+             * @default home
+             * @enum {string}
+             */
+            start_page: "home" | "tree";
+        };
+        /**
+         * PreferencesUpdate
+         * @description Only the settings given change.
+         */
+        PreferencesUpdate: {
+            /** Theme */
+            theme?: ("system" | "light" | "dark") | null;
+            /** Text Size */
+            text_size?: ("normal" | "large") | null;
+            /** Start Page */
+            start_page?: ("home" | "tree") | null;
+        };
+        /** ProfilePhoto */
+        ProfilePhoto: {
+            /** Photo Id */
+            photo_id: string | null;
         };
         /**
          * RelativeLink
@@ -1332,9 +1643,13 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Cover Photo Id */
+            cover_photo_id: string | null;
             access: components["schemas"]["MyAccessOut"];
             /** Person Count */
             person_count: number;
+            /** Photo Count */
+            photo_count: number;
         };
         /** TreeGraphOut */
         TreeGraphOut: {
@@ -1359,6 +1674,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Cover Photo Id */
+            cover_photo_id: string | null;
             highest_role: components["schemas"]["Role"];
         };
         /** TreeOut */
@@ -1377,6 +1694,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Cover Photo Id */
+            cover_photo_id: string | null;
         };
         /** TreeUpdate */
         TreeUpdate: {
@@ -1398,6 +1717,7 @@ export interface components {
             display_name: string;
             /** Avatar Url */
             avatar_url: string | null;
+            preferences: components["schemas"]["Preferences"];
         };
         /** UserUpdate */
         UserUpdate: {
@@ -1405,6 +1725,7 @@ export interface components {
             display_name?: string | null;
             /** Avatar Url */
             avatar_url?: string | null;
+            preferences?: components["schemas"]["PreferencesUpdate"] | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -2614,6 +2935,407 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TreeGraphOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_photos_api_trees__tree_id__people__person_id__photos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_photo_api_trees__tree_id__people__person_id__photos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_photo_api_trees__tree_id__people__person_id__photos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_profile_photo_api_trees__tree_id__people__person_id__photo_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfilePhoto"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfilePhoto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_photo_api_trees__tree_id__photos__photo_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                photo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_photo_api_trees__tree_id__photos__photo_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                photo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    photo_file_api_trees__tree_id__photos__photo_id___size__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                photo_id: string;
+                size: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_cover_api_trees__tree_id__cover_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_set_cover_api_trees__tree_id__cover_put"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_cover_api_trees__tree_id__cover_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_conditions_api_trees__tree_id__people__person_id__conditions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConditionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_condition_api_trees__tree_id__people__person_id__conditions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConditionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_condition_api_trees__tree_id__conditions__condition_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                condition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_condition_api_trees__tree_id__conditions__condition_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tree_id: string;
+                condition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConditionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConditionOut"];
                 };
             };
             /** @description Validation Error */

@@ -1852,10 +1852,704 @@
           }
         }
       }
+    },
+    "/api/trees/{tree_id}/people/{person_id}/photos": {
+      "get": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "List Photos",
+        "operationId": "list_photos_api_trees__tree_id__people__person_id__photos_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PhotoOut"
+                  },
+                  "title": "Response List Photos Api Trees  Tree Id  People  Person Id  Photos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "Upload Photo",
+        "description": "Add a photo to someone's gallery. Their first becomes their profile picture.",
+        "operationId": "upload_photo_api_trees__tree_id__people__person_id__photos_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_photo_api_trees__tree_id__people__person_id__photos_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/people/{person_id}/photo": {
+      "put": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "Set Profile Photo",
+        "operationId": "set_profile_photo_api_trees__tree_id__people__person_id__photo_put",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfilePhoto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfilePhoto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/photos/{photo_id}": {
+      "patch": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "Update Photo",
+        "operationId": "update_photo_api_trees__tree_id__photos__photo_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Photo Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "Delete Photo",
+        "operationId": "delete_photo_api_trees__tree_id__photos__photo_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Photo Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/photos/{photo_id}/{size}": {
+      "get": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "Photo File",
+        "description": "The image, as WebP: `thumb` (up to 480px) or `full` (up to 2048px).",
+        "operationId": "photo_file_api_trees__tree_id__photos__photo_id___size__get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Photo Id"
+            }
+          },
+          {
+            "name": "size",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/cover": {
+      "put": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "Set Cover",
+        "description": "Replace the tree's cover photo (admins).",
+        "operationId": "set_cover_api_trees__tree_id__cover_put",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_set_cover_api_trees__tree_id__cover_put"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "photos"
+        ],
+        "summary": "Remove Cover",
+        "operationId": "remove_cover_api_trees__tree_id__cover_delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/people/{person_id}/conditions": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "List Conditions",
+        "description": "Their recorded conditions, and what close blood relatives have recorded.",
+        "operationId": "list_conditions_api_trees__tree_id__people__person_id__conditions_get",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConditionsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Add Condition",
+        "operationId": "add_condition_api_trees__tree_id__people__person_id__conditions_post",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "person_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Person Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConditionIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConditionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trees/{tree_id}/conditions/{condition_id}": {
+      "patch": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Update Condition",
+        "operationId": "update_condition_api_trees__tree_id__conditions__condition_id__patch",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "condition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Condition Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConditionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConditionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Delete Condition",
+        "operationId": "delete_condition_api_trees__tree_id__conditions__condition_id__delete",
+        "parameters": [
+          {
+            "name": "tree_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tree Id"
+            }
+          },
+          {
+            "name": "condition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Condition Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Body_set_cover_api_trees__tree_id__cover_put": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_set_cover_api_trees__tree_id__cover_put"
+      },
+      "Body_upload_photo_api_trees__tree_id__people__person_id__photos_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "caption": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Caption",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_photo_api_trees__tree_id__people__person_id__photos_post"
+      },
       "ChildRelation": {
         "type": "string",
         "enum": [
@@ -1865,6 +2559,178 @@
           "foster"
         ],
         "title": "ChildRelation"
+      },
+      "ConditionIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ConditionStatus"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9999.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "ConditionIn"
+      },
+      "ConditionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Person Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ConditionStatus"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "person_id",
+          "name",
+          "status",
+          "year",
+          "note"
+        ],
+        "title": "ConditionOut"
+      },
+      "ConditionStatus": {
+        "type": "string",
+        "enum": [
+          "diagnosed",
+          "carrier",
+          "watch",
+          "untested"
+        ],
+        "title": "ConditionStatus"
+      },
+      "ConditionUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConditionStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9999.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "ConditionUpdate"
+      },
+      "ConditionsOut": {
+        "properties": {
+          "recorded": {
+            "items": {
+              "$ref": "#/components/schemas/ConditionOut"
+            },
+            "type": "array",
+            "title": "Recorded"
+          },
+          "inherited": {
+            "items": {
+              "$ref": "#/components/schemas/InheritedConditionOut"
+            },
+            "type": "array",
+            "title": "Inherited"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recorded",
+          "inherited"
+        ],
+        "title": "ConditionsOut"
       },
       "DateQualifier": {
         "type": "string",
@@ -2461,6 +3327,18 @@
             "type": "boolean",
             "title": "Is Living"
           },
+          "photo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Id"
+          },
           "linked_user_id": {
             "anyOf": [
               {
@@ -2502,6 +3380,7 @@
           "surname",
           "sex",
           "is_living",
+          "photo_id",
           "linked_user_id",
           "birth",
           "death"
@@ -2521,6 +3400,49 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "InheritedConditionOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ConditionStatus"
+          },
+          "source_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Source Id"
+          },
+          "via": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Via"
+          },
+          "generations": {
+            "type": "integer",
+            "title": "Generations"
+          },
+          "others": {
+            "type": "integer",
+            "title": "Others"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "source_id",
+          "via",
+          "generations",
+          "others"
+        ],
+        "title": "InheritedConditionOut",
+        "description": "Something a close blood relative has recorded: worth keeping an eye on."
       },
       "InviteAccepted": {
         "properties": {
@@ -3156,6 +4078,18 @@
             "format": "date-time",
             "title": "Updated At"
           },
+          "photo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Id"
+          },
           "birth": {
             "anyOf": [
               {
@@ -3249,6 +4183,7 @@
           "linked_user_id",
           "created_at",
           "updated_at",
+          "photo_id",
           "birth",
           "death",
           "permissions",
@@ -3394,6 +4329,18 @@
             "format": "date-time",
             "title": "Updated At"
           },
+          "photo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Id"
+          },
           "birth": {
             "anyOf": [
               {
@@ -3438,6 +4385,7 @@
           "linked_user_id",
           "created_at",
           "updated_at",
+          "photo_id",
           "birth",
           "death"
         ],
@@ -3460,6 +4408,14 @@
           "can_add_relatives": {
             "type": "boolean",
             "title": "Can Add Relatives"
+          },
+          "can_view_conditions": {
+            "type": "boolean",
+            "title": "Can View Conditions"
+          },
+          "can_edit_conditions": {
+            "type": "boolean",
+            "title": "Can Edit Conditions"
           }
         },
         "type": "object",
@@ -3467,7 +4423,9 @@
           "can_edit",
           "can_set_living",
           "can_delete",
-          "can_add_relatives"
+          "can_add_relatives",
+          "can_view_conditions",
+          "can_edit_conditions"
         ],
         "title": "PersonPermissions"
       },
@@ -3710,6 +4668,75 @@
         ],
         "title": "Pet"
       },
+      "PhotoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tree_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tree Id"
+          },
+          "person_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Id"
+          },
+          "caption": {
+            "type": "string",
+            "title": "Caption"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tree_id",
+          "person_id",
+          "caption",
+          "width",
+          "height",
+          "created_at"
+        ],
+        "title": "PhotoOut",
+        "description": "A photo. The image is at /api/trees/{tree_id}/photos/{id}/thumb or /full."
+      },
+      "PhotoUpdate": {
+        "properties": {
+          "caption": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Caption"
+          }
+        },
+        "type": "object",
+        "required": [
+          "caption"
+        ],
+        "title": "PhotoUpdate"
+      },
       "PlaceOut": {
         "properties": {
           "id": {
@@ -3728,6 +4755,120 @@
           "name"
         ],
         "title": "PlaceOut"
+      },
+      "Preferences": {
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "system",
+              "light",
+              "dark"
+            ],
+            "title": "Theme",
+            "default": "system"
+          },
+          "text_size": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "large"
+            ],
+            "title": "Text Size",
+            "default": "normal"
+          },
+          "start_page": {
+            "type": "string",
+            "enum": [
+              "home",
+              "tree"
+            ],
+            "title": "Start Page",
+            "default": "home"
+          }
+        },
+        "type": "object",
+        "required": [
+          "theme",
+          "text_size",
+          "start_page"
+        ],
+        "title": "Preferences",
+        "description": "App settings, saved to the account so they follow the user between devices."
+      },
+      "PreferencesUpdate": {
+        "properties": {
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "system",
+                  "light",
+                  "dark"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          },
+          "text_size": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "large"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Size"
+          },
+          "start_page": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "home",
+                  "tree"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Page"
+          }
+        },
+        "type": "object",
+        "title": "PreferencesUpdate",
+        "description": "Only the settings given change."
+      },
+      "ProfilePhoto": {
+        "properties": {
+          "photo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "photo_id"
+        ],
+        "title": "ProfilePhoto"
       },
       "RelativeLink": {
         "properties": {
@@ -4301,12 +5442,28 @@
             "format": "date-time",
             "title": "Created At"
           },
+          "cover_photo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Photo Id"
+          },
           "access": {
             "$ref": "#/components/schemas/MyAccessOut"
           },
           "person_count": {
             "type": "integer",
             "title": "Person Count"
+          },
+          "photo_count": {
+            "type": "integer",
+            "title": "Photo Count"
           }
         },
         "type": "object",
@@ -4315,8 +5472,10 @@
           "name",
           "description",
           "created_at",
+          "cover_photo_id",
           "access",
-          "person_count"
+          "person_count",
+          "photo_count"
         ],
         "title": "TreeDetailOut"
       },
@@ -4364,6 +5523,18 @@
             "format": "date-time",
             "title": "Created At"
           },
+          "cover_photo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Photo Id"
+          },
           "highest_role": {
             "$ref": "#/components/schemas/Role"
           }
@@ -4374,6 +5545,7 @@
           "name",
           "description",
           "created_at",
+          "cover_photo_id",
           "highest_role"
         ],
         "title": "TreeListItem"
@@ -4397,6 +5569,18 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "cover_photo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Photo Id"
           }
         },
         "type": "object",
@@ -4404,7 +5588,8 @@
           "id",
           "name",
           "description",
-          "created_at"
+          "created_at",
+          "cover_photo_id"
         ],
         "title": "TreeOut"
       },
@@ -4463,6 +5648,9 @@
               }
             ],
             "title": "Avatar Url"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
           }
         },
         "type": "object",
@@ -4470,7 +5658,8 @@
           "id",
           "email",
           "display_name",
-          "avatar_url"
+          "avatar_url",
+          "preferences"
         ],
         "title": "UserOut"
       },
@@ -4499,6 +5688,16 @@
               }
             ],
             "title": "Avatar Url"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreferencesUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",

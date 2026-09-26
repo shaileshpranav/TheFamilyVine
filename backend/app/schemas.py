@@ -8,7 +8,15 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, mo
 
 from app.dates import FuzzyDate, FuzzyDateOut
 from app.kinship import RelationName
-from app.models import ChildRelation, EventType, PartnerStatus, Role, Sex, SubtreeDirection
+from app.models import (
+    ChildRelation,
+    ConditionStatus,
+    EventType,
+    PartnerStatus,
+    Role,
+    Sex,
+    SubtreeDirection,
+)
 
 
 class Schema(BaseModel):
@@ -24,16 +32,41 @@ class ORM(Schema):
 # ---- users --------------------------------------------------------------------------------
 
 
+Theme = Literal["system", "light", "dark"]
+TextSize = Literal["normal", "large"]
+StartPage = Literal["home", "tree"]
+
+
+class Preferences(Schema):
+    """App settings, saved to the account so they follow the user between devices."""
+
+    theme: Theme = "system"
+    """"system" follows the device's light or dark setting."""
+    text_size: TextSize = "normal"
+    start_page: StartPage = "home"
+    """Where opening a tree lands: its home page, or straight on the tree canvas."""
+
+
+class PreferencesUpdate(Schema):
+    """Only the settings given change."""
+
+    theme: Theme | None = None
+    text_size: TextSize | None = None
+    start_page: StartPage | None = None
+
+
 class UserOut(ORM):
     id: uuid.UUID
     email: str
     display_name: str
     avatar_url: str | None
+    preferences: Preferences
 
 
 class UserUpdate(Schema):
     display_name: str | None = Field(None, max_length=200)
     avatar_url: str | None = Field(None, max_length=1000)
+    preferences: PreferencesUpdate | None = None
 
 
 # ---- trees --------------------------------------------------------------------------------
@@ -54,6 +87,8 @@ class TreeOut(ORM):
     name: str
     description: str
     created_at: datetime
+    cover_photo_id: uuid.UUID | None = None
+    """Show it at /api/trees/{id}/photos/{cover_photo_id}/full (or /thumb)."""
 
 
 class SubtreeRoleOut(Schema):
@@ -76,6 +111,8 @@ class MyAccessOut(Schema):
 class TreeDetailOut(TreeOut):
     access: MyAccessOut
     person_count: int
+    photo_count: int
+    """Photos of the people the viewer can see."""
 
 
 class TreeListItem(TreeOut):
@@ -280,6 +317,9 @@ class PersonPermissions(Schema):
     can_set_living: bool
     can_delete: bool
     can_add_relatives: bool
+    can_view_conditions: bool
+    """Health is shared only with the person and their blood relatives."""
+    can_edit_conditions: bool
 
 
 class VitalOut(Schema):
@@ -298,6 +338,8 @@ class PersonOut(PersonFields, ORM):
     linked_user_id: uuid.UUID | None
     created_at: datetime
     updated_at: datetime
+    photo_id: uuid.UUID | None = None
+    """Their profile picture: /api/trees/{tree_id}/photos/{photo_id}/thumb (or /full)."""
     birth: VitalOut | None = None
     death: VitalOut | None = None
 
@@ -412,6 +454,7 @@ class GraphPerson(ORM):
     surname: str
     sex: Sex
     is_living: bool
+    photo_id: uuid.UUID | None = None
     linked_user_id: uuid.UUID | None
     birth: VitalOut | None = None
     death: VitalOut | None = None
@@ -438,3 +481,75 @@ class GraphFamily(Schema):
 class TreeGraphOut(Schema):
     people: list[GraphPerson]
     families: list[GraphFamily]
+
+
+# ---- photos -------------------------------------------------------------------------------
+
+
+class PhotoOut(ORM):
+    """A photo. The image is at /api/trees/{tree_id}/photos/{id}/thumb or /full."""
+
+    id: uuid.UUID
+    tree_id: uuid.UUID
+    person_id: uuid.UUID | None
+    caption: str
+    width: int
+    height: int
+    created_at: datetime
+
+
+class PhotoUpdate(Schema):
+    caption: str = Field(max_length=500)
+
+
+class ProfilePhoto(Schema):
+    photo_id: uuid.UUID | None
+    """One of the person's photos, or none to go back to their initials."""
+
+
+# ---- health -------------------------------------------------------------------------------
+
+
+class ConditionIn(Schema):
+    name: str = Field(min_length=1, max_length=200)
+    status: ConditionStatus
+    year: int | None = Field(None, ge=1, le=9999)
+    """When it was diagnosed or found."""
+    note: str = Field("", max_length=500)
+
+
+class ConditionUpdate(Schema):
+    name: str | None = Field(None, min_length=1, max_length=200)
+    status: ConditionStatus | None = None
+    year: int | None = Field(None, ge=1, le=9999)
+    note: str | None = Field(None, max_length=500)
+
+
+class ConditionOut(ORM):
+    id: uuid.UUID
+    person_id: uuid.UUID
+    name: str
+    status: ConditionStatus
+    year: int | None
+    note: str
+
+
+class InheritedConditionOut(Schema):
+    """Something a close blood relative has recorded: worth keeping an eye on."""
+
+    name: str
+    status: ConditionStatus
+    """What the relative recorded: diagnosed, or carrier."""
+    source_id: uuid.UUID
+    """The closest relative who has it recorded."""
+    via: list[uuid.UUID]
+    """For grandparents and beyond: the line from them down to the person's parent."""
+    generations: int
+    """1 for a parent, 2 for a grandparent, 3 for a great-grandparent; 0 for a sibling."""
+    others: int
+    """How many more relatives have it recorded."""
+
+
+class ConditionsOut(Schema):
+    recorded: list[ConditionOut]
+    inherited: list[InheritedConditionOut]

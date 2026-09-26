@@ -13,6 +13,20 @@
       rel="stylesheet"
     />
     <title>TheFamilyVine</title>
+    <script>
+      // Apply the last-used appearance and text size before the first paint, so nothing
+      // flashes. The app keeps these in step with the account's settings (lib/preferences).
+      ;(function () {
+        var root = document.documentElement
+        var theme = 'system'
+        try {
+          theme = localStorage.getItem('fv-theme') || 'system'
+          if (localStorage.getItem('fv-text') === 'large') root.dataset.text = 'large'
+        } catch (e) {}
+        var dark = theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        root.dataset.theme = dark ? 'dark' : 'light'
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router'
 import { ROLE_INFO, type Role, type Tree } from '../api/client'
 import { useMe, useTree, useTrees } from '../api/hooks'
+import { treeLink, usePreferences } from '../lib/preferences'
 import { exitPreview, previewRole } from '../preview'
 import { Avatar } from './ui'
 
@@ -47,6 +48,7 @@ export default function AppShell() {
   const onCanvas = !!useMatch('/trees/:treeId/tree')
   const { data: tree } = useTree(treeId)
   const { data: me } = useMe()
+  usePreferences(me?.preferences)
   const { pathname } = useLocation()
 
   useEffect(() => {
@@ -140,6 +142,7 @@ function TreeSwitcher({ current }: { current?: Tree }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { data: trees } = useTrees()
+  const { data: me } = useMe()
 
   useEffect(() => {
     if (!open) return
@@ -173,7 +176,7 @@ function TreeSwitcher({ current }: { current?: Tree }) {
           {trees?.map((t) => (
             <Link
               key={t.id}
-              to={`/trees/${t.id}`}
+              to={treeLink(t.id, me?.preferences)}
               role="menuitem"
               className={`menu-item${t.id === current?.id ? ' current' : ''}`}
               onClick={close}
@@ -186,7 +189,7 @@ function TreeSwitcher({ current }: { current?: Tree }) {
           <Link to="/" role="menuitem" className="menu-item" onClick={close}>
             <SquaresFour size={15} /> All trees
           </Link>
-          <Link to="/?new=1" role="menuitem" className="menu-item" onClick={close}>
+          <Link to="/plant" role="menuitem" className="menu-item" onClick={close}>
             <Plus size={15} /> Start a new tree
           </Link>
         </div>

@@ -12,6 +12,7 @@ import InvitePage from './pages/InvitePage'
 import MembersTab from './pages/MembersTab'
 import PeopleTab from './pages/PeopleTab'
 import PersonPage from './pages/PersonPage'
+import PlantPage from './pages/PlantPage'
 import SettingsTab from './pages/SettingsTab'
 import TreeHome from './pages/TreeHome'
 import TreeLayout from './pages/TreeLayout'
@@ -42,6 +43,7 @@ export default function App() {
       >
         <Route index element={<TreesPage />} />
         <Route path="account" element={<AccountPage />} />
+        <Route path="plant" element={<PlantPage />} />
         <Route path="invite/:token" element={<InvitePage />} />
         <Route path="trees/:treeId" element={<TreeLayout />}>
           <Route index element={<TreeHome />} />

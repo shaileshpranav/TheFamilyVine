@@ -2,18 +2,21 @@ import { MagnifyingGlass } from '@phosphor-icons/react'
 import { useId, useState } from 'react'
 import type { Person } from '../api/client'
 import { lifespan } from '../lib/dates'
+import { photoUrl } from '../lib/photos'
 import { Avatar } from './ui'
 
-type Pickable = Pick<Person, 'id' | 'display_name' | 'is_living' | 'birth' | 'death'>
+type Pickable = Pick<Person, 'id' | 'display_name' | 'is_living' | 'birth' | 'death' | 'photo_id'>
 
 /** Choose someone already on the tree, by name. */
 export default function PersonPicker({
+  treeId,
   people,
   value,
   onChange,
   label = 'Search the people on this tree',
   autoFocus = true,
 }: {
+  treeId: string
   people: Pickable[]
   value: string | null
   onChange: (id: string | null) => void
@@ -27,7 +30,12 @@ export default function PersonPicker({
   if (picked) {
     return (
       <div className="picked-person">
-        <Avatar name={picked.display_name} size="sm" deceased={!picked.is_living} />
+        <Avatar
+          name={picked.display_name}
+          size="sm"
+          deceased={!picked.is_living}
+          photo={photoUrl(treeId, picked.photo_id)}
+        />
         <span className="grow">
           <span className="rel-name">{picked.display_name}</span>
           <span className="rel-sub mono">{lifespan(picked.birth, picked.death)}</span>

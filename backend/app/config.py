@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -20,6 +21,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = []
 
     invite_ttl_days: int = 14
+
+    # Where uploaded photos are kept (a Docker volume in production).
+    media_dir: Path = Path("media")
 
     # Skips SuperTokens initialisation; tests inject the current user directly.
     testing: bool = False
