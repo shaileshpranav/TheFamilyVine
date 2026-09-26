@@ -245,6 +245,30 @@ async def test_connect_existing_child_to_a_couple(api, family):
     assert (await relatives(owner, family, "kid"))[orphan]["relation"] == "sibling"
 
 
+async def couple_of(client, family, a, b):
+    rels = (await client.get(f"{base(family)}/{family[a]}")).json()["relatives"]
+    return next(r["family_id"] for r in rels if r["person_id"] == family[b])
+
+
+async def test_connect_child_with_siblings_but_no_parents_to_a_couple(api, family):
+    owner = api.as_(OWNER)
+    a, b, c = await loose(owner, family, "A", "B", "C")
+    await connect(owner, family, a, "sibling", b)
+    # From Mum's side, choosing Dad as the other parent: A's sibling B comes along.
+    couple = await couple_of(owner, family, "mum", "dad")
+    r = await connect(owner, family, a, "child", family["mum"], family_id=couple)
+    assert r.status_code == 200, r.text
+    for x in (a, b):
+        parents = (await owner.get(f"{base(family)}/{x}")).json()["parents"]
+        assert set(parents) == {family["dad"], family["mum"]}
+    # From the child's side: C (with a sibling) gets Dad, and Mum as the other parent.
+    [d] = await loose(owner, family, "D")
+    await connect(owner, family, c, "sibling", d)
+    r = await connect(owner, family, family["dad"], "parent", c, family_id=couple)
+    assert r.status_code == 200, r.text
+    assert set(r.json()["children"]) >= {c, d}
+
+
 async def test_no_one_becomes_their_own_ancestor(api, family):
     owner = api.as_(OWNER)
     r = await connect(owner, family, family["kid"], "parent", family["grandpa"])

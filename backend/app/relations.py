@@ -158,6 +158,7 @@ async def _link_parent(
     A child with parents recorded keeps them, and the new parent joins them. One without
     joins one of the parent's families: `family_id` (a couple), a new single-parent family
     (`new_family`), or the parent's existing one (`own_family`, for step relations).
+    Siblings recorded with them but without parents come too, since they share parents.
     """
     if parent in kin.parents(child):
         raise _unprocessable("They're already recorded as a parent")
@@ -166,27 +167,40 @@ async def _link_parent(
     if family_id is not None and family_id not in births and family_id not in theirs:
         raise _unprocessable("That family doesn't connect them")
 
-    if not births:
-        if own_family or new_family or not theirs:
-            _check_no_loop(kin, [parent], [child])
-            if own_family:
-                family = await _single_parent_family(db, kin, parent, tree_id)
-            else:
-                family = Family(
-                    tree_id=tree_id, partners=[FamilyPartner(person_id=parent)], children=[]
-                )
-                db.add(family)
+    if not any(kin.families[f].partners for f in births):
+        # No parents recorded, but `births` may hold siblings recorded without them.
+        siblings = {c for f in births for c in kin.families[f].children} | {child}
+        if own_family:
+            target: Family | None = await _single_parent_family(db, kin, parent, tree_id)
+        elif family_id in theirs:
+            target = await _family(db, family_id)
+        elif new_family or family_id in births or not theirs:
+            target = None  # the parent starts a family with them
         else:
             fid = _pick(
                 theirs,
-                family_id,
+                None,
                 none_msg="",
                 many_msg="This person has several partners; choose the other parent",
                 wrong_msg="",
             )
-            _check_no_loop(kin, kin.families[fid].partners, [child])
-            family = await _family(db, fid)
-        family.children.append(ChildLink(person_id=child))
+            target = await _family(db, fid)
+        known = target is not None and target.id in kin.families
+        _check_no_loop(kin, kin.families[target.id].partners if known else [parent], list(siblings))
+
+        groups = list(births)
+        if target is None and groups:
+            target = await _family(db, groups.pop(0))  # their sibling group gains a parent
+            target.partners.append(FamilyPartner(person_id=parent))
+        elif target is None:
+            target = Family(
+                tree_id=tree_id, partners=[FamilyPartner(person_id=parent)], children=[]
+            )
+            db.add(target)
+        for group in groups:
+            await _move_children(db, group, target)
+        if not births:
+            target.children.append(ChildLink(person_id=child))
         return
 
     if family_id in theirs and family_id not in births:
@@ -199,11 +213,11 @@ async def _link_parent(
         return
 
     fid = _pick(
-        births,
+        [f for f in births if kin.families[f].partners],
         family_id,
         none_msg="",
         many_msg="This person has more than one set of parents; choose which",
-        wrong_msg="",
+        wrong_msg="That family doesn't connect them",
     )
     family = kin.families[fid]
     if len(family.partners) >= 2:
