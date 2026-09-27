@@ -1,6 +1,7 @@
 import { CaretRight, Plus, TreeStructure, UserPlus } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useCurrentTree, useKin, useMe, useMembers, usePeople, useSubtrees, useTreeGraph } from '../api/hooks'
+import InstallCard from '../components/InstallCard'
 import OnThisDay from '../components/OnThisDay'
 import { AccessCard, TreeLinksCard, YourProfileCard } from '../components/TreeCards'
 import { Avatar, Label, PageHeader, Reveal, Tag, YouTag } from '../components/ui'
@@ -91,6 +92,7 @@ export default function TreeHome() {
       </div>
 
       <div className="bento">
+        <InstallCard />
         {graph && (
           <Reveal className="span-3">
             <OnThisDay graph={graph} kin={kin} meId={meId} />

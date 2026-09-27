@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router'
 import { ROLE_INFO, type Role, type Tree } from '../api/client'
 import { useMe, useTree, useTrees } from '../api/hooks'
+import { claimOfflineData } from '../lib/offline'
 import { treeLink, usePreferences } from '../lib/preferences'
 import { exitPreview, previewRole } from '../preview'
 import { Avatar } from './ui'
@@ -50,6 +51,10 @@ export default function AppShell() {
   const { data: me } = useMe()
   usePreferences(me?.preferences)
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    if (me) claimOfflineData(me.id)
+  }, [me])
 
   useEffect(() => {
     window.scrollTo(0, 0)
