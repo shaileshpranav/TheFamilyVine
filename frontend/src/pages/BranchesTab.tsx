@@ -6,6 +6,7 @@ import { api, type Schemas, type Subtree, unwrap } from '../api/client'
 import { useCurrentTree, useInvalidateTree, usePeople, useSubtreePeople, useSubtrees } from '../api/hooks'
 import { Avatar, Empty, ErrorText, Field, LivingBadge, Loading, PageHeader } from '../components/ui'
 import { staggerIndex } from '../lib/format'
+import { photoUrl } from '../lib/photos'
 
 const DIRECTION_LABEL: Record<Schemas['SubtreeDirection'], string> = {
   descendants: 'Descendants of',
@@ -140,7 +141,12 @@ function BranchRow({
             {members?.map((p) => (
               <li key={p.id}>
                 <Link to={`../people/${p.id}`} relative="path" className="rel-link">
-                  <Avatar name={p.display_name} size="sm" deceased={!p.is_living} />
+                  <Avatar
+                    name={p.display_name}
+                    size="sm"
+                    deceased={!p.is_living}
+                    photo={photoUrl(tree.id, p.photo_id)}
+                  />
                   <span>{p.display_name}</span>
                   <LivingBadge living={p.is_living} />
                 </Link>

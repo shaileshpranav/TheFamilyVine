@@ -1,10 +1,12 @@
-import { ArrowLeft, Info, PencilSimple, UserPlus } from '@phosphor-icons/react'
+import { ArrowLeft, Info, Path, PencilSimple, TreeStructure, UserPlus } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import type { PersonDetail, Schemas } from '../api/client'
-import { useCurrentTree, usePeople, usePerson } from '../api/hooks'
+import { useCurrentTree, useKin, usePeople, usePerson } from '../api/hooks'
 import AddPersonForm from '../components/AddPersonForm'
 import FamilySection from '../components/FamilySection'
+import HealthCard from '../components/HealthCard'
+import PhotoGallery from '../components/PhotoGallery'
 import ProfileEditor from '../components/ProfileEditor'
 import { DetailsCard, FavoritesCard, Links, PetsCard } from '../components/ProfileDetails'
 import RelationPicker from '../components/RelationPicker'
@@ -12,6 +14,8 @@ import Timeline, { type Couple } from '../components/Timeline'
 import { Avatar, ErrorText, Label, LivingBadge, Loading, Reveal, YouTag } from '../components/ui'
 import { lifespan } from '../lib/dates'
 import type { EventType, NewRelation } from '../lib/genealogy'
+import { relationToYou } from '../lib/relationship'
+import { photoUrl } from '../lib/photos'
 
 type Panel = null | 'edit' | 'pick' | { relation: NewRelation }
 
@@ -23,6 +27,7 @@ export default function PersonPage() {
   const [panel, setPanel] = useState<Panel>(null)
   const [adding, setAdding] = useState<EventType | 'any' | null>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
+  const kin = useKin(tree.id)
 
   if (isLoading) return <Loading rows={2} />
   if (error || !person) return <ErrorText error={error ?? 'Person not found'} />
@@ -31,6 +36,7 @@ export default function PersonPage() {
   const perms = person.permissions
   const meId = tree.access.my_person_id
   const isMe = person.id === meId
+  const relation = meId && kin && !isMe ? relationToYou(kin.relate(meId, person.id)) : null
   const span = lifespan(person.birth, person.death)
   const meta = [
     person.birth_surname && `née ${person.birth_surname}`,
@@ -53,13 +59,20 @@ export default function PersonPage() {
       </Link>
 
       <header className="person-head page-enter">
-        <Avatar name={person.display_name} size="lg" me={isMe} deceased={!person.is_living} />
+        <Avatar
+          name={person.display_name}
+          size="lg"
+          me={isMe}
+          deceased={!person.is_living}
+          photo={photoUrl(tree.id, person.photo_id)}
+        />
         <div className="grow">
           <h1>
             {person.display_name}
             {isMe && <YouTag />}
           </h1>
           {person.native_name && <p className="native-name">{person.native_name}</p>}
+          {relation && <p className="relation-to-you">{relation}</p>}
           <div className="person-meta">
             <LivingBadge living={person.is_living} />
             {[span && <span key="span" className="mono">{span}</span>, ...meta.map((m) => <span key={String(m)}>{m}</span>)]
@@ -80,6 +93,14 @@ export default function PersonPage() {
             <button className="btn btn-ghost" onClick={() => setPanel('pick')}>
               <UserPlus size={16} /> Add a relative
             </button>
+          )}
+          <Link to={`../../tree?focus=${person.id}`} relative="path" className="btn btn-ghost">
+            <TreeStructure size={16} /> Show on tree
+          </Link>
+          {!isMe && (
+            <Link to={`../../tree?relate=${person.id}`} relative="path" className="btn btn-ghost">
+              <Path size={16} /> How are we related?
+            </Link>
           )}
           {!perms.can_edit && (
             <p className="note">
@@ -117,6 +138,9 @@ export default function PersonPage() {
                 <Links links={person.links} />
               </section>
             </Reveal>
+            <Reveal className="p-photos" delay={60}>
+              <PhotoGallery treeId={tree.id} person={person} />
+            </Reveal>
             <Reveal className="p-family" delay={100}>
               <FamilySection treeId={tree.id} person={person} people={people} meId={meId} />
             </Reveal>
@@ -130,6 +154,11 @@ export default function PersonPage() {
             <Reveal className="p-details" delay={60}>
               <DetailsCard person={person} onAddBirth={perms.can_edit ? () => startAdding('birth') : undefined} />
             </Reveal>
+            {perms.can_view_conditions && (
+              <Reveal className="p-health" delay={120}>
+                <HealthCard treeId={tree.id} person={person} people={people} />
+              </Reveal>
+            )}
             {person.favorites.length > 0 && (
               <Reveal className="p-favorites" delay={180}>
                 <FavoritesCard person={person} />

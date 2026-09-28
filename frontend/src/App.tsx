@@ -1,21 +1,27 @@
+import { lazy, Suspense } from 'react'
 import * as reactRouter from 'react-router'
 import { Navigate, Route, Routes } from 'react-router'
 import { getSuperTokensRoutesForReactRouterDom } from 'supertokens-auth-react/ui'
 import { EmailPasswordPreBuiltUI } from 'supertokens-auth-react/recipe/emailpassword/prebuiltui'
 import { SessionAuth } from 'supertokens-auth-react/recipe/session'
 import AppShell from './components/AppShell'
+import { Loading } from './components/ui'
 import AccountPage from './pages/AccountPage'
 import BranchesTab from './pages/BranchesTab'
 import InvitePage from './pages/InvitePage'
 import MembersTab from './pages/MembersTab'
 import PeopleTab from './pages/PeopleTab'
 import PersonPage from './pages/PersonPage'
+import PlantPage from './pages/PlantPage'
 import SettingsTab from './pages/SettingsTab'
 import TreeHome from './pages/TreeHome'
 import TreeLayout from './pages/TreeLayout'
 import TreesPage from './pages/TreesPage'
 import YouPage from './pages/YouPage'
 import { previewRole } from './preview'
+
+// The canvas pulls in React Flow and ELK, so it loads only when someone opens the tree.
+const TreeCanvasPage = lazy(() => import('./pages/TreeCanvasPage'))
 
 // Preview mode runs on sample data without SuperTokens, so skip its routes and session guard.
 const preview = import.meta.env.DEV && previewRole !== null
@@ -37,9 +43,18 @@ export default function App() {
       >
         <Route index element={<TreesPage />} />
         <Route path="account" element={<AccountPage />} />
+        <Route path="plant" element={<PlantPage />} />
         <Route path="invite/:token" element={<InvitePage />} />
         <Route path="trees/:treeId" element={<TreeLayout />}>
           <Route index element={<TreeHome />} />
+          <Route
+            path="tree"
+            element={
+              <Suspense fallback={<Loading />}>
+                <TreeCanvasPage />
+              </Suspense>
+            }
+          />
           <Route path="people" element={<PeopleTab />} />
           <Route path="people/:personId" element={<PersonPage />} />
           <Route path="branches" element={<BranchesTab />} />

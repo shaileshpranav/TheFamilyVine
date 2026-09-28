@@ -5,6 +5,7 @@ import { useInvalidateTree } from '../api/hooks'
 import { lifespan } from '../lib/dates'
 import { type PartnerStatus, RELATIVE_GROUPS, STATUS_LABEL } from '../lib/genealogy'
 import { Avatar, ErrorText, Label, Tag } from './ui'
+import { photoUrl } from '../lib/photos'
 
 /** Parents, step-parents, partners, siblings, children… each linked to their own page. */
 export default function FamilySection({
@@ -94,7 +95,13 @@ function RelativeRow({
   return (
     <li className="relative-row">
       <Link to={`../${r.person_id}`} relative="path" className="rel-link grow">
-        <Avatar name={name} size="sm" me={r.person_id === meId} deceased={p ? !p.is_living : false} />
+        <Avatar
+          name={name}
+          size="sm"
+          me={r.person_id === meId}
+          deceased={p ? !p.is_living : false}
+          photo={photoUrl(treeId, p?.photo_id)}
+        />
         <span className="grow">
           <span className="rel-name">
             <span>{name}</span>
@@ -129,6 +136,106 @@ function RelativeRow({
         </select>
       )}
       <ErrorText error={setStatus.error} />
+      <MakeParentButton treeId={treeId} person={person} relative={r} people={people} />
+      <UnlinkButton treeId={treeId} person={person} relative={r} people={people} />
     </li>
+  )
+}
+
+const UNLINK_AS: Record<string, string> = { parent: 'parent', child: 'child', sibling: 'sibling' }
+
+/** Removes a direct link (a parent, child, partner or sibling). Nobody is deleted. */
+function UnlinkButton({
+  treeId,
+  person,
+  relative: r,
+  people,
+}: {
+  treeId: string
+  person: PersonDetail
+  relative: RelativeOut
+  people: Map<string, Person>
+}) {
+  const invalidate = useInvalidateTree()
+  const remove = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.DELETE('/api/trees/{tree_id}/people/{person_id}/relatives/{relative_id}', {
+          params: { path: { tree_id: treeId, person_id: person.id, relative_id: r.person_id } },
+        }),
+      ),
+    onSuccess: () => invalidate(treeId),
+  })
+  if (!r.can_unlink) return null
+
+  const me = person.display_name
+  const them = people.get(r.person_id)?.display_name ?? 'Unknown'
+  const question =
+    r.relation === 'partner'
+      ? `Remove ${me} and ${them} as partners? Any events they share, such as a marriage, go too.`
+      : `Remove ${them} as ${me}’s ${UNLINK_AS[r.relation] ?? 'relative'}?`
+  return (
+    <>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        aria-label={r.relation === 'partner' ? `Remove ${them} as a partner` : `Remove ${them} as ${me}’s ${UNLINK_AS[r.relation]}`}
+        disabled={remove.isPending}
+        onClick={() => confirm(`${question} Nobody is deleted from the tree.`) && remove.mutate()}
+      >
+        Remove
+      </button>
+      <ErrorText error={remove.error} />
+    </>
+  )
+}
+
+/**
+ * Records a step-parent as a parent. It fixes the common mix-up of adding someone's other
+ * parent as their parent's partner. Shown on step-parent and step-child rows when possible.
+ */
+export function MakeParentButton({
+  treeId,
+  person,
+  relative: r,
+  people,
+}: {
+  treeId: string
+  person: PersonDetail
+  relative: RelativeOut
+  people: Map<string, Person>
+}) {
+  const invalidate = useInvalidateTree()
+  // On a step-child's row the page's person is the step-parent; otherwise they're the child.
+  const stepChild = r.relation === 'step_child'
+  const [childId, parentId] = stepChild ? [r.person_id, person.id] : [person.id, r.person_id]
+  const make = useMutation({
+    mutationFn: () =>
+      unwrap(
+        api.POST('/api/trees/{tree_id}/people/{person_id}/relatives', {
+          params: { path: { tree_id: treeId, person_id: childId } },
+          body: { person_id: parentId, relation: 'child' },
+        }),
+      ),
+    onSuccess: () => invalidate(treeId),
+  })
+  if (!r.can_make_parent) return null
+
+  const name = (id: string) => (id === person.id ? person.display_name : people.get(id)?.display_name) ?? 'Unknown'
+  const [child, parent] = [name(childId), name(parentId)]
+  const couple = r.via_person_id ? ` ${child} will be shown as ${name(r.via_person_id)} and ${parent}’s child.` : ''
+  return (
+    <>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm"
+        aria-label={stepChild ? `Make ${child} ${parent}’s child` : `Make ${parent} ${child}’s parent`}
+        disabled={make.isPending}
+        onClick={() => confirm(`Record ${parent} as ${child}’s parent?${couple}`) && make.mutate()}
+      >
+        {stepChild ? 'Make child' : 'Make parent'}
+      </button>
+      <ErrorText error={make.error} />
+    </>
   )
 }

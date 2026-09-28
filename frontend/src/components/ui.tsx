@@ -105,23 +105,33 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   )
 }
 
+/** Someone's profile photo, or their initials when they don't have one. */
 export function Avatar({
   name,
   size = 'md',
   me = false,
   deceased = false,
+  photo,
 }: {
   name: string
   size?: 'sm' | 'md' | 'lg'
   me?: boolean
   deceased?: boolean
+  /** The image's URL (see lib/photos). */
+  photo?: string | null
 }) {
-  const cls = ['avatar', size !== 'md' && `avatar-${size}`, me && 'avatar-me', deceased && !me && 'avatar-deceased']
+  const cls = [
+    'avatar',
+    size !== 'md' && `avatar-${size}`,
+    me && 'avatar-me',
+    deceased && !me && 'avatar-deceased',
+    photo && 'avatar-photo',
+  ]
     .filter(Boolean)
     .join(' ')
   return (
     <span className={cls} aria-hidden="true">
-      {initialsOf(name)}
+      {photo ? <img src={photo} alt="" loading="lazy" /> : initialsOf(name)}
     </span>
   )
 }

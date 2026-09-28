@@ -3,8 +3,9 @@ import uuid
 from fastapi import APIRouter, status
 from sqlalchemy import func, select
 
+from app import photos
 from app.deps import DB, Access, CurrentUser, forbidden, not_found
-from app.models import Membership, Person, Role, Tree
+from app.models import Membership, Person, Photo, Role, Tree
 from app.permissions import TreeAccess, max_role
 from app.schemas import (
     MemberOut,
@@ -88,13 +89,20 @@ async def get_tree(tree_id: uuid.UUID, access: Access, db: DB):
         count = await db.scalar(select(func.count()).where(Person.tree_id == tree_id)) or 0
     else:
         count = len(visible)
+    # Photos of people the viewer can see (a cover isn't anyone's).
+    photo_owners = await db.scalars(
+        select(Photo.person_id).where(Photo.tree_id == tree_id, Photo.person_id.is_not(None))
+    )
+    photo_count = sum(1 for pid in photo_owners if visible is None or pid in visible)
     return TreeDetailOut(
         id=tree.id,
         name=tree.name,
         description=tree.description,
         created_at=tree.created_at,
+        cover_photo_id=tree.cover_photo_id,
         access=await _access_out(db, access),
         person_count=count,
+        photo_count=photo_count,
     )
 
 
@@ -115,6 +123,7 @@ async def delete_tree(tree_id: uuid.UUID, access: Access, db: DB):
         raise forbidden("Only the owner can delete a tree")
     await db.delete(await db.get(Tree, tree_id))
     await db.commit()
+    photos.remove_tree(tree_id)
 
 
 @router.post("/{tree_id}/transfer", status_code=status.HTTP_204_NO_CONTENT)

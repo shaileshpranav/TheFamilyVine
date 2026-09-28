@@ -6,6 +6,7 @@ from app.models.event import (
     EventType,
     Place,
 )
+from app.models.media import Condition, ConditionStatus, Photo
 from app.models.person import (
     ChildLink,
     ChildRelation,
@@ -28,11 +29,14 @@ __all__ = [
     "Place",
     "ChildLink",
     "ChildRelation",
+    "Condition",
+    "ConditionStatus",
     "Family",
     "FamilyPartner",
     "Invite",
     "Membership",
     "Person",
+    "Photo",
     "Role",
     "Sex",
     "Subtree",

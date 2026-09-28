@@ -4,6 +4,7 @@
  * stays in step with the real responses. Relatives and timelines are derived here the same
  * way the API derives them (app/kinship.py, app/timeline.py), in simplified form.
  */
+import { DEFAULT_PREFERENCES } from '../lib/preferences'
 import type { Role, Schemas } from '../api/client'
 import { dateLabel, dateShort } from '../lib/dates'
 
@@ -42,15 +43,16 @@ const ME: Schemas['UserOut'] = {
   email: 'ellie.hollis@example.com',
   display_name: 'Ellie Hollis',
   avatar_url: null,
+  preferences: DEFAULT_PREFERENCES,
 }
 
 const USERS: Record<string, Schemas['UserOut']> = {
   ellie: ME,
-  margaret: { id: 'u-margaret', email: 'margaret.hollis@example.com', display_name: 'Margaret Hollis', avatar_url: null },
-  tom: { id: 'u-tom', email: 'tom.hollis@example.com', display_name: 'Tom Hollis', avatar_url: null },
-  grace: { id: 'u-grace', email: 'grace.lane@example.com', display_name: 'Grace Lane', avatar_url: null },
-  marco: { id: 'u-marco', email: 'marco.russo@example.com', display_name: 'Marco Russo', avatar_url: null },
-  priya: { id: 'u-priya', email: 'priya.raman@example.com', display_name: 'Priya Raman', avatar_url: null },
+  margaret: { id: 'u-margaret', email: 'margaret.hollis@example.com', display_name: 'Margaret Hollis', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  tom: { id: 'u-tom', email: 'tom.hollis@example.com', display_name: 'Tom Hollis', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  grace: { id: 'u-grace', email: 'grace.lane@example.com', display_name: 'Grace Lane', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  marco: { id: 'u-marco', email: 'marco.russo@example.com', display_name: 'Marco Russo', avatar_url: null, preferences: DEFAULT_PREFERENCES },
+  priya: { id: 'u-priya', email: 'priya.raman@example.com', display_name: 'Priya Raman', avatar_url: null, preferences: DEFAULT_PREFERENCES },
 }
 
 interface SeedEvent {
@@ -224,6 +226,56 @@ const FAMILIES: SeedFamily[] = [
     ] },
 ]
 
+// ---- health (see app/health.py) --------------------------------------------------------
+
+type ConditionStatus = Schemas['ConditionStatus']
+const HEALTH: Record<string, [name: string, status: ConditionStatus, year: number | null, note: string][]> = {
+  arthur: [['Coronary artery disease', 'diagnosed', 1998, ''], ['Type 2 diabetes', 'diagnosed', 1990, '']],
+  beatrice: [['Glaucoma', 'diagnosed', 2004, '']],
+  margaret: [['Type 2 diabetes', 'diagnosed', 2011, '']],
+  james: [['High blood pressure', 'diagnosed', 2009, '']],
+  david: [['Type 2 diabetes', 'watch', 2021, 'Pre-diabetic']],
+  ellie: [['BRCA1 / BRCA2', 'untested', null, 'No family history recorded']],
+  marco: [['Coeliac disease', 'diagnosed', 2011, '']],
+}
+
+/** What close blood relatives have recorded (parents to great-grandparents, and siblings). */
+function conditionsFor(id: string): Schemas['ConditionsOut'] {
+  const recorded = (HEALTH[id] ?? []).map(([name, status, year, note], i) => ({
+    id: `c-${id}-${i}`, person_id: id, name, status, year, note,
+  }))
+  const own = new Set(recorded.map((c) => c.name.toLowerCase()))
+  // Ancestors by generation, remembering the way back down.
+  const below = new Map<string, string>()
+  const gen = new Map<string, number>()
+  let frontier = [id]
+  for (let g = 1; g <= 3 && frontier.length; g++) {
+    frontier = frontier.flatMap((x) =>
+      parentsOf(x).filter((p) => !gen.has(p)).map((p) => (gen.set(p, g), below.set(p, x), p)),
+    )
+  }
+  const siblings = uniq(parentsOf(id).flatMap(childrenOf)).filter((x) => x !== id)
+  siblings.forEach((x) => gen.set(x, 0))
+  const found = new Map<string, Schemas['InheritedConditionOut']>()
+  const byCloseness = [...gen].sort((a, b) => Math.max(a[1], 1) - Math.max(b[1], 1) || a[1] - b[1])
+  for (const [source, g] of byCloseness) {
+    if (!ELLIES_BLOOD.has(source)) continue
+    for (const [name, status] of HEALTH[source] ?? []) {
+      const key = name.toLowerCase()
+      if (own.has(key) || (status !== 'diagnosed' && status !== 'carrier')) continue
+      const known = found.get(key)
+      if (known) {
+        known.others += 1
+        continue
+      }
+      const via: string[] = []
+      if (g > 1) for (let x: string | undefined = source; x && x !== id; x = below.get(x)) via.push(x)
+      found.set(key, { name, status, source_id: source, via, generations: g, others: 0 })
+    }
+  }
+  return { recorded, inherited: [...found.values()] }
+}
+
 // ---- simplified kinship (see app/kinship.py) -------------------------------------------
 
 const uniq = <T,>(xs: T[]) => [...new Set(xs)]
@@ -234,11 +286,27 @@ const childrenOf = (id: string) => uniq(partnerIn(id).flatMap((f) => f.children)
 const partnersOf = (id: string) =>
   partnerIn(id).flatMap((f) => f.partners.filter((x) => x !== id).map((x) => ({ id: x, family: f })))
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x))
+/** The family in which `parent` is `child`'s only recorded parent. */
+const soleParentFamily = (child: string, parent: string) =>
+  childIn(child).find((f) => sameSet(f.partners, [parent]))
+/** Can this link be removed on its own? (See Kin.removable_link.) */
+const removable = (id: string, r: SeedRelative) =>
+  r.relation === 'parent' ||
+  r.relation === 'child' ||
+  (r.relation === 'partner' && !FAMILIES.find((f) => f.id === r.family_id)?.children.length) ||
+  (r.relation === 'sibling' && childIn(id).some((f) => !f.partners.length && f.children.includes(r.person_id)))
+/** The couple a step-parent's child could join, making the step-parent a parent too. */
+const joinableCouple = (child: string, stepParent: string) =>
+  parentsOf(child).includes(stepParent)
+    ? undefined
+    : partnersOf(stepParent).find((q) => soleParentFamily(child, q.id))?.family
 
-function relativesOf(id: string): Omit<Relative, 'can_edit_family'>[] {
-  const out: Omit<Relative, 'can_edit_family'>[] = []
+type SeedRelative = Omit<Relative, 'can_edit_family' | 'can_make_parent' | 'can_unlink'>
+
+function relativesOf(id: string): SeedRelative[] {
+  const out: SeedRelative[] = []
   const seen = new Set([id])
-  const add = (r: Omit<Relative, 'can_edit_family'>) => {
+  const add = (r: SeedRelative) => {
     if (!seen.has(r.person_id)) {
       seen.add(r.person_id)
       out.push(r)
@@ -278,14 +346,21 @@ const COUPLE: Partial<Record<EventType, string>> = {
 
 // ---- building the dataset --------------------------------------------------------------
 
+// Ellie's blood relatives (and Ellie): the only people whose health she may see.
+const ELLIES_BLOOD = new Set(['ellie', 'arthur', 'beatrice', 'james', 'margaret', 'david', 'tom', 'grace', 'sofia'])
+
 function permissionsFor(role: Role, person: Person): Schemas['PersonPermissions'] {
   const rank = RANK[role]
   const isMe = person.linked_user_id === ME.id
+  const canEdit = isMe || rank >= RANK.admin || (role === 'contributor' && !person.is_living)
+  const blood = ELLIES_BLOOD.has(person.id)
   return {
-    can_edit: isMe || rank >= RANK.admin || (role === 'contributor' && !person.is_living),
+    can_edit: canEdit,
     can_set_living: rank >= RANK.admin,
     can_delete: rank >= RANK.admin,
     can_add_relatives: rank >= RANK.contributor,
+    can_view_conditions: blood,
+    can_edit_conditions: person.is_living ? isMe : blood && canEdit,
   }
 }
 
@@ -315,6 +390,8 @@ export interface Dataset {
   subtreePeople: Record<string, Record<string, Person[]>>
   invitePreview: Record<string, Schemas['InvitePreview']>
   places: Record<string, Schemas['PlaceOut'][]>
+  graph: Record<string, Schemas['TreeGraphOut']>
+  conditions: Record<string, Record<string, Schemas['ConditionsOut']>>
 }
 
 export function buildDataset(role: Role): Dataset {
@@ -326,6 +403,7 @@ export function buildDataset(role: Role): Dataset {
   const people: Person[] = HOLLIS.map((s) => ({
     id: s.id,
     tree_id: hollis,
+    photo_id: null,
     given_names: s.given,
     surname: s.surname,
     birth_surname: s.birthSurname ?? '',
@@ -399,10 +477,18 @@ export function buildDataset(role: Role): Dataset {
 
   const details = Object.fromEntries(
     people.map((p) => {
-      const relatives = relativesOf(p.id).map((r) => ({
-        ...r,
-        can_edit_family: r.relation === 'partner' && !!r.family_id && canEditFamily(FAMILIES.find((f) => f.id === r.family_id)!),
-      }))
+      const relatives = relativesOf(p.id).map((r) => {
+        const couple =
+          r.relation === 'step_parent' ? joinableCouple(p.id, r.person_id)
+          : r.relation === 'step_child' ? joinableCouple(r.person_id, p.id)
+          : undefined
+        return {
+          ...r,
+          can_edit_family: r.relation === 'partner' && !!r.family_id && canEditFamily(FAMILIES.find((f) => f.id === r.family_id)!),
+          can_make_parent: !!couple && RANK[role] >= RANK.contributor,
+          can_unlink: removable(p.id, r) && RANK[role] >= RANK.contributor,
+        }
+      })
       return [
         p.id,
         {
@@ -411,6 +497,7 @@ export function buildDataset(role: Role): Dataset {
           parents: parentsOf(p.id),
           children: childrenOf(p.id),
           partners: partnersOf(p.id).map((q) => q.id),
+          only_parent_of: childrenOf(p.id).filter((c) => soleParentFamily(c, p.id)),
           relatives,
           timeline: timelineFor(p.id),
         } satisfies PersonDetail,
@@ -459,6 +546,33 @@ export function buildDataset(role: Role): Dataset {
       person_id: null, expires_at: ahead(5), accepted_at: null, revoked: false },
   ]
 
+  const graph: Schemas['TreeGraphOut'] = {
+    people: people.map((p) => ({
+      id: p.id,
+      display_name: p.display_name,
+      given_names: p.given_names,
+      surname: p.surname,
+      sex: p.sex,
+      is_living: p.is_living,
+      linked_user_id: p.linked_user_id,
+      photo_id: p.photo_id,
+      birth: p.birth,
+      death: p.death,
+    })),
+    families: FAMILIES.map((f) => {
+      const wedding = (f.events ?? []).find((e) => e.type === 'marriage')
+      const married = wedding?.date
+      return {
+        id: f.id,
+        status: f.status,
+        partner_ids: f.partners,
+        children: f.children.map((c) => ({ person_id: c, relation: 'biological' as const })),
+        married: !!wedding,
+        marriage: married ? fd(married) : null,
+      }
+    }),
+  }
+
   const raman = 'raman'
   const sortByName = (a: Person, b: Person) =>
     a.surname.localeCompare(b.surname) || a.given_names.localeCompare(b.given_names)
@@ -467,18 +581,24 @@ export function buildDataset(role: Role): Dataset {
     me: ME,
     trees: [
       { id: hollis, name: 'The Hollis Family', description: 'Four generations, from Leeds and Cork to Portland.',
-        created_at: ago(63), highest_role: role },
+        created_at: ago(63), highest_role: role, cover_photo_id: null },
       { id: raman, name: 'The Raman Family', description: 'Priya’s side, started this spring.',
-        created_at: ago(20), highest_role: 'contributor' },
+        created_at: ago(20), highest_role: 'contributor', cover_photo_id: null },
     ],
     tree: {
       [hollis]: { id: hollis, name: 'The Hollis Family', description: 'Four generations, from Leeds and Cork to Portland.',
-        created_at: ago(63), access: accessFor(role, 'ellie'), person_count: people.length },
+        created_at: ago(63), access: accessFor(role, 'ellie'), person_count: people.length,
+        cover_photo_id: null, photo_count: 0 },
       [raman]: { id: raman, name: 'The Raman Family', description: 'Priya’s side, started this spring.',
-        created_at: ago(20), access: accessFor('contributor', null), person_count: 0 },
+        created_at: ago(20), access: accessFor('contributor', null), person_count: 0,
+        cover_photo_id: null, photo_count: 0 },
     },
     people: { [hollis]: [...people].sort(sortByName), [raman]: [] },
     person: { [hollis]: details, [raman]: {} },
+    conditions: {
+      [hollis]: Object.fromEntries([...ELLIES_BLOOD].map((id) => [id, conditionsFor(id)])),
+      [raman]: {},
+    },
     members: {
       [hollis]: members,
       [raman]: [member('m-priya', 'priya', 'owner', 20), member('m-ellie-r', 'ellie', 'contributor', 18)],
@@ -497,5 +617,6 @@ export function buildDataset(role: Role): Dataset {
       expired: { tree_name: 'The Hollis Family', subtree_name: null, role: 'personal', person_name: null, usable: false },
     },
     places: { [hollis]: places, [raman]: [] },
+    graph: { [hollis]: graph, [raman]: { people: [], families: [] } },
   }
 }

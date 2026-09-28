@@ -1,5 +1,7 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useOutletContext, useParams } from 'react-router'
+import { Kin } from '../lib/relationship'
 import { api, type Tree, unwrap } from './client'
 
 export const keys = {
@@ -60,15 +62,17 @@ export function usePeople(treeId: string, q = '') {
   })
 }
 
-export function usePerson(treeId: string, personId: string) {
+/** A person's full profile. Pass `null` to wait until someone is chosen. */
+export function usePerson(treeId: string, personId: string | null) {
   return useQuery({
-    queryKey: keys.person(treeId, personId),
+    queryKey: keys.person(treeId, personId ?? ''),
     queryFn: () =>
       unwrap(
         api.GET('/api/trees/{tree_id}/people/{person_id}', {
-          params: { path: { tree_id: treeId, person_id: personId } },
+          params: { path: { tree_id: treeId, person_id: personId! } },
         }),
       ),
+    enabled: personId !== null,
   })
 }
 
@@ -118,3 +122,50 @@ export function usePlaces(treeId: string) {
     staleTime: 60_000,
   })
 }
+
+/** Everyone the viewer can see (optionally one branch) with the couples that join them. */
+/** Relationships between everyone the viewer can see (see lib/relationship). */
+export function useKin(treeId: string) {
+  const { data } = useTreeGraph(treeId)
+  return useMemo(() => (data ? new Kin(data) : null), [data])
+}
+
+export function useTreeGraph(treeId: string, subtreeId?: string) {
+  return useQuery({
+    queryKey: ['tree', treeId, 'graph', subtreeId ?? ''],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/trees/{tree_id}/graph', {
+          params: { path: { tree_id: treeId }, query: subtreeId ? { subtree_id: subtreeId } : {} },
+        }),
+      ),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function usePersonPhotos(treeId: string, personId: string) {
+  return useQuery({
+    queryKey: ['tree', treeId, 'photos', personId],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/trees/{tree_id}/people/{person_id}/photos', {
+          params: { path: { tree_id: treeId, person_id: personId } },
+        }),
+      ),
+  })
+}
+
+/** Health, for people the viewer may see it for (the person and their blood relatives). */
+export function useConditions(treeId: string, personId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['tree', treeId, 'conditions', personId],
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/trees/{tree_id}/people/{person_id}/conditions', {
+          params: { path: { tree_id: treeId, person_id: personId } },
+        }),
+      ),
+    enabled,
+  })
+}
+

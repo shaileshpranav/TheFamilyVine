@@ -45,6 +45,18 @@ export const RELATIVE_GROUPS: { label: string; relations: RelativeRelation[] }[]
   { label: 'Step-children', relations: ['step_child'] },
 ]
 
+/** A relative's relation, as a label next to their name. */
+export const RELATION_NAME: Record<RelativeRelation, string> = {
+  parent: 'Parent',
+  step_parent: 'Step-parent',
+  partner: 'Partner',
+  sibling: 'Sibling',
+  half_sibling: 'Half-sibling',
+  step_sibling: 'Step-sibling',
+  child: 'Child',
+  step_child: 'Step-child',
+}
+
 export const ADD_RELATION: Record<NewRelation, { label: string; hint: string; blended: boolean }> = {
   partner: { label: 'Partner', hint: 'Spouse or life partner', blended: false },
   parent: { label: 'Parent', hint: 'Mother or father', blended: false },

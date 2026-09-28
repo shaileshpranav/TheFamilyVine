@@ -160,6 +160,92 @@ class Kin:
         """Families this person was born or adopted into (not step links)."""
         return [f for f in self.child_in.get(pid, ()) if self.families[f].children[pid] != STEP]
 
+    def descendants(self, pid: PersonId) -> set[PersonId]:
+        """Everyone below this person: children, their children, and so on."""
+        out: set[PersonId] = set()
+        stack = [pid]
+        while stack:
+            for fid in self.partner_in.get(stack.pop(), ()):
+                for child in self.families[fid].children:
+                    if child not in out:
+                        out.add(child)
+                        stack.append(child)
+        return out
+
+    def ancestry(self, pid: PersonId) -> dict[PersonId | tuple[str, FamilyId], int]:
+        """A person and everyone above them, by generation (the person is 0).
+
+        Each family counts too, as the shared parents of its children whether or not they're
+        recorded, so siblings with no parents on the tree still meet there.
+        """
+        out: dict[PersonId | tuple[str, FamilyId], int] = {pid: 0}
+        frontier = [pid]
+        for gen in range(1, 64):
+            nxt: list[PersonId] = []
+            for person in frontier:
+                for fid in self.birth_families(person):
+                    out.setdefault(("family", fid), gen)
+                    for parent in self.families[fid].partners:
+                        if parent not in out:
+                            out[parent] = gen
+                            nxt.append(parent)
+            if not nxt:
+                break
+            frontier = nxt
+        return out
+
+    def blood_related(self, a: PersonId, b: PersonId) -> bool:
+        """Do their lines meet: one descends from the other, or they share ancestors?"""
+        return a == b or not self.ancestry(a).keys().isdisjoint(self.ancestry(b).keys())
+
+    def couples(self, a: PersonId, b: PersonId) -> list[FamilyId]:
+        """Families in which `a` and `b` are partners."""
+        return [f for f in self.partner_in.get(a, ()) if b in self.families[f].partners]
+
+    def removable_link(
+        self, a: PersonId, b: PersonId
+    ) -> Literal["parent", "child", "partner", "sibling"] | None:
+        """How `b` is directly linked to `a`, if that link can be removed on its own.
+
+        Half-siblings and step relatives come from other links, siblings who share parents
+        are linked through those parents, and a couple with children together stays their
+        parents, so none of those can be.
+        """
+        if b in self.blood_parents(a):
+            return "parent"
+        if a in self.blood_parents(b):
+            return "child"
+        couples = self.couples(a, b)
+        if couples:
+            return None if any(self.families[f].children for f in couples) else "partner"
+        shared = set(self.birth_families(a)) & set(self.birth_families(b))
+        if any(not self.families[f].partners for f in shared):
+            return "sibling"
+        return None
+
+    def sole_parent_family(self, child: PersonId, parent: PersonId) -> FamilyId | None:
+        """The family in which `parent` is `child`'s only recorded parent, if there is one."""
+        for fid in self.birth_families(child):
+            if self.families[fid].partners == [parent]:
+                return fid
+        return None
+
+    def joinable_couple(
+        self, child: PersonId, step_parent: PersonId
+    ) -> tuple[FamilyId, FamilyId] | None:
+        """Can this step-parent be recorded as a parent instead?
+
+        Only when their partner is the child's only recorded parent. Returns the family the
+        child is in now and the couple's family, which the child can move into.
+        """
+        if step_parent in self.blood_parents(child):
+            return None
+        for partner, couple, _status in self.partners(step_parent):
+            source = self.sole_parent_family(child, partner)
+            if source is not None:
+                return source, couple
+        return None
+
     # ---- derived relations -------------------------------------------------------------
 
     def siblings(self, pid: PersonId) -> dict[PersonId, Literal["full", "half"]]:

@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import String, Uuid
+from sqlalchemy import JSON, String, Uuid, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base, TimestampMixin
@@ -16,3 +16,6 @@ class User(TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     display_name: Mapped[str] = mapped_column(String(200), default="")
     avatar_url: Mapped[str | None] = mapped_column(String(1000))
+    # App settings (see schemas.Preferences), saved here so they follow the user between
+    # devices. Settings never chosen are left out and read as their defaults.
+    preferences: Mapped[dict] = mapped_column(JSON, default=dict, server_default=text("'{}'"))

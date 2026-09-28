@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { ROLE_INFO, type Tree } from '../api/client'
 import { useMembers, usePeople, useSubtrees } from '../api/hooks'
 import { Avatar, Label, RoleBadge } from './ui'
+import { photoUrl } from '../lib/photos'
 
 /** The signed-in member's own person in this tree, or a prompt to add themselves. */
 export function YourProfileCard({ tree }: { tree: Tree }) {
@@ -13,7 +14,7 @@ export function YourProfileCard({ tree }: { tree: Tree }) {
     return (
       <Link to={`/trees/${tree.id}/people/${mine.id}`} className="card card-link" style={{ height: '100%' }}>
         <Label>Your profile</Label>
-        <Avatar name={mine.display_name} size="lg" me />
+        <Avatar name={mine.display_name} size="lg" me photo={photoUrl(tree.id, mine.photo_id)} />
         <p className="card-title" style={{ marginTop: 16 }}>
           {mine.display_name}
         </p>

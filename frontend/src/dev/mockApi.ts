@@ -1,6 +1,6 @@
 /**
  * Answers `/api/*` requests in the browser for preview mode. Reads come from the sample
- * dataset; every change is refused so it's obvious nothing is saved.
+ * dataset; every change except settings is refused, so it's obvious nothing is saved.
  */
 import type { Role } from '../api/client'
 import { buildDataset, type Dataset } from './fixtures'
@@ -25,11 +25,32 @@ const ROUTES: [RegExp, Handler][] = [
     },
   ],
   [/^\/api\/trees\/([^/]+)\/people\/([^/]+)$/, (d, [, t, p]) => d.person[t]?.[p]],
+  [/^\/api\/trees\/([^/]+)\/people\/([^/]+)\/photos$/, (d, [, t, p]) => (d.person[t]?.[p] ? [] : undefined)],
+  [/^\/api\/trees\/([^/]+)\/people\/([^/]+)\/conditions$/, (d, [, t, p]) => d.conditions[t]?.[p]],
   [/^\/api\/trees\/([^/]+)\/members$/, (d, [, t]) => d.members[t]],
   [/^\/api\/trees\/([^/]+)\/invites$/, (d, [, t]) => d.invites[t]],
   [/^\/api\/trees\/([^/]+)\/subtrees$/, (d, [, t]) => d.subtrees[t]],
   [/^\/api\/trees\/([^/]+)\/subtrees\/([^/]+)\/people$/, (d, [, t, s]) => d.subtreePeople[t]?.[s]],
   [/^\/api\/trees\/([^/]+)\/places$/, (d, [, t]) => d.places[t]],
+  [
+    /^\/api\/trees\/([^/]+)\/graph$/,
+    (d, [, t], url) => {
+      const graph = d.graph[t]
+      const branch = url.searchParams.get('subtree_id')
+      if (!graph || !branch) return graph
+      const ids = new Set((d.subtreePeople[t]?.[branch] ?? []).map((p) => p.id))
+      return {
+        people: graph.people.filter((p) => ids.has(p.id)),
+        families: graph.families
+          .map((f) => ({
+            ...f,
+            partner_ids: f.partner_ids.filter((x) => ids.has(x)),
+            children: f.children.filter((c) => ids.has(c.person_id)),
+          }))
+          .filter((f) => f.partner_ids.length + f.children.length >= 2),
+      }
+    },
+  ],
   [/^\/api\/invites\/([^/]+)$/, (d, [, token]) => d.invitePreview[token]],
 ]
 
@@ -52,6 +73,12 @@ export function installMockApi(role: Role) {
     }
     // A short delay so loading states are visible, as they would be against the real API.
     await new Promise((resolve) => setTimeout(resolve, 150))
+    if (request.method === 'PATCH' && url.pathname === '/api/me') {
+      // Settings are the one change allowed, kept for this visit, so themes can be tried.
+      const { preferences } = (await request.json()) as { preferences?: Partial<Dataset['me']['preferences']> }
+      data.me = { ...data.me, preferences: { ...data.me.preferences, ...preferences } }
+      return json(200, data.me)
+    }
     if (request.method !== 'GET') {
       return json(403, { detail: 'Preview mode: changes aren’t saved.' })
     }

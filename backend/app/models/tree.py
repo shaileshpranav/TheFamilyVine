@@ -52,6 +52,9 @@ class Tree(TimestampMixin, Base):
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
+    cover_photo_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("photos.id", ondelete="SET NULL", use_alter=True)
+    )
 
     subtrees: Mapped[list["Subtree"]] = relationship(
         back_populates="tree", cascade="all, delete-orphan", passive_deletes=True

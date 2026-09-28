@@ -1,0 +1,66 @@
+import { Plus } from '@phosphor-icons/react'
+import type { Node, NodeProps } from '@xyflow/react'
+import { memo } from 'react'
+import { lifespan } from '../../lib/dates'
+import { initialsOf } from '../../lib/format'
+import type { GraphPerson } from '../../lib/treeLayout'
+
+export type PersonNodeData = {
+  person: GraphPerson
+  /** Their profile photo's URL, if they have one. */
+  photo: string | null
+  isMe: boolean
+  selected: boolean
+  /** While a line between two people is shown: on it, or off it and dimmed. */
+  path: 'on' | 'off' | null
+  canAdd: boolean
+  onSelect: (id: string) => void
+  onAdd: (id: string) => void
+}
+export type PersonNodeType = Node<PersonNodeData, 'person'>
+
+/** A person on the canvas: a tile with their initials, then their name and years. */
+function PersonNode({ data }: NodeProps<PersonNodeType>) {
+  const { person, photo, isMe, selected, path, canAdd, onSelect, onAdd } = data
+  const years = lifespan(person.birth, person.death)
+  const cls = [
+    'tree-node',
+    isMe && 'me',
+    !person.is_living && 'deceased',
+    selected && 'selected',
+    path && `path-${path}`,
+    photo && 'has-photo',
+  ]
+    .filter(Boolean)
+    .join(' ')
+  return (
+    <div className={cls}>
+      <div className="tree-tile-wrap">
+        <button
+          type="button"
+          className="tree-tile"
+          aria-pressed={selected}
+          aria-label={`${person.display_name}${years ? `, ${years}` : ''}${isMe ? ' (you)' : ''}`}
+          onClick={() => onSelect(person.id)}
+        >
+          {photo ? <img src={photo} alt="" loading="lazy" draggable={false} /> : initialsOf(person.display_name)}
+        </button>
+        {selected && canAdd && (
+          <button
+            type="button"
+            className="tree-add"
+            aria-label={`Add a relative of ${person.display_name}`}
+            title="Add a relative"
+            onClick={() => onAdd(person.id)}
+          >
+            <Plus size={13} weight="bold" />
+          </button>
+        )}
+      </div>
+      <div className="tree-name">{person.display_name}</div>
+      {years && <div className="tree-years">{years}</div>}
+    </div>
+  )
+}
+
+export default memo(PersonNode)

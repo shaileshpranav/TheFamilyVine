@@ -4,11 +4,12 @@ import uuid
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import or_, select
 
+from app import health, photos
 from app.deps import DB, Access, forbidden, get_visible_person, not_found
 from app.kinship import RELATION_ORDER, Kin
-from app.models import Event, EventType, Membership, Person
+from app.models import Event, EventType, Membership, Person, Photo
 from app.permissions import TreeAccess
-from app.relations import attach_relative
+from app.relations import attach_relative, detach_relative
 from app.schemas import (
     LinkUser,
     PersonCreate,
@@ -16,6 +17,7 @@ from app.schemas import (
     PersonOut,
     PersonPermissions,
     PersonUpdate,
+    RelativeLink,
     RelativeOut,
 )
 from app.timeline import birth_sort_key, build_timeline, load_vitals, person_out
@@ -32,15 +34,33 @@ async def _detail(db: DB, access: TreeAccess, person: Person) -> PersonDetailOut
     def visible(pid: uuid.UUID) -> bool:
         return pid in people and access.can_view_person(people[pid])
 
+    me = health.my_person_id(access, people)
+
     relatives: list[RelativeOut] = []
     for rel in kin.relatives(person.id):
         if not visible(rel.person_id):
             continue
+        other = people[rel.person_id]
+        # Linking and unlinking follow the rules for adding a relative, for both of them.
+        can_link = access.can_attach_to(person) and access.can_attach_to(other)
         can_edit_family = False
         if rel.relation == "partner" and rel.family_id is not None:
             couple = [people[x] for x in kin.families[rel.family_id].partners if x in people]
             can_edit_family = access.can_edit_family(couple)
-        relatives.append(RelativeOut(**dataclasses.asdict(rel), can_edit_family=can_edit_family))
+        can_make_parent = False
+        if rel.relation in ("step_parent", "step_child"):
+            child, step = (
+                (person.id, other.id) if rel.relation == "step_parent" else (other.id, person.id)
+            )
+            can_make_parent = can_link and kin.joinable_couple(child, step) is not None
+        relatives.append(
+            RelativeOut(
+                **dataclasses.asdict(rel),
+                can_edit_family=can_edit_family,
+                can_make_parent=can_make_parent,
+                can_unlink=can_link and kin.removable_link(person.id, other.id) is not None,
+            )
+        )
 
     vitals = await load_vitals(db, access.tree_id, [person.id, *(r.person_id for r in relatives)])
     relatives.sort(
@@ -58,10 +78,20 @@ async def _detail(db: DB, access: TreeAccess, person: Person) -> PersonDetailOut
             can_set_living=access.can_set_living(person),
             can_delete=access.can_delete_person(person),
             can_add_relatives=access.can_attach_to(person),
+            can_view_conditions=health.can_view(access, kin, me, person),
+            can_edit_conditions=health.can_edit(access, kin, me, person),
         ),
         parents=sorted((p for p in kin.parents(person.id) if visible(p)), key=str),
         children=sorted((c for c in kin.children(person.id) if visible(c)), key=str),
         partners=sorted((p for p, _f, _s in kin.partners(person.id) if visible(p)), key=str),
+        only_parent_of=sorted(
+            (
+                c
+                for c in kin.children(person.id)
+                if visible(c) and kin.sole_parent_family(c, person.id) is not None
+            ),
+            key=str,
+        ),
         relatives=relatives,
         timeline=await build_timeline(db, kin, person, people, access),
     )
@@ -149,6 +179,48 @@ async def get_person(tree_id: uuid.UUID, person_id: uuid.UUID, access: Access, d
     return await _detail(db, access, await get_visible_person(db, access, person_id))
 
 
+@router.post("/{person_id}/relatives", response_model=PersonDetailOut)
+async def connect_relative(
+    tree_id: uuid.UUID, person_id: uuid.UUID, body: RelativeLink, access: Access, db: DB
+):
+    """Connect this person, already on the tree, to `body.person_id`.
+
+    It works exactly like adding someone new with `relative`: {"person_id": X, "relation":
+    "child"} records them as X's child. That also covers turning a step-parent into a parent.
+    """
+    person = await get_visible_person(db, access, person_id)
+    anchor = await get_visible_person(db, access, body.person_id)
+    if body.via_person_id:
+        await get_visible_person(db, access, body.via_person_id)
+    if not (access.can_attach_to(person) and access.can_attach_to(anchor)):
+        raise forbidden()
+    await attach_relative(db, person, body, anchor)
+    await db.commit()
+
+    # Reload access so sub-tree membership reflects the new relationship.
+    fresh = await TreeAccess.load(db, access.user, tree_id)
+    assert fresh is not None
+    return await _detail(db, fresh, person)
+
+
+@router.delete("/{person_id}/relatives/{relative_id}", response_model=PersonDetailOut)
+async def disconnect_relative(
+    tree_id: uuid.UUID, person_id: uuid.UUID, relative_id: uuid.UUID, access: Access, db: DB
+):
+    """Remove a direct link: a parent, a child, a partner with no children together, or a
+    sibling recorded without parents. Nobody is deleted."""
+    person = await get_visible_person(db, access, person_id)
+    relative = await get_visible_person(db, access, relative_id)
+    if not (access.can_attach_to(person) and access.can_attach_to(relative)):
+        raise forbidden()
+    await detach_relative(db, person, relative)
+    await db.commit()
+
+    fresh = await TreeAccess.load(db, access.user, tree_id)
+    assert fresh is not None
+    return await _detail(db, fresh, person)
+
+
 @router.patch("/{person_id}", response_model=PersonDetailOut)
 async def update_person(
     tree_id: uuid.UUID, person_id: uuid.UUID, body: PersonUpdate, access: Access, db: DB
@@ -174,8 +246,10 @@ async def delete_person(tree_id: uuid.UUID, person_id: uuid.UUID, access: Access
     person = await get_visible_person(db, access, person_id)
     if not access.can_delete_person(person):
         raise forbidden()
+    photo_ids = list(await db.scalars(select(Photo.id).where(Photo.person_id == person.id)))
     await db.delete(person)
     await db.commit()
+    photos.remove(tree_id, photo_ids)
 
 
 @router.put("/{person_id}/linked-user", response_model=PersonDetailOut)
